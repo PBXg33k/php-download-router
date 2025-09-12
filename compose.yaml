@@ -66,6 +66,19 @@ services:
       # - ./api/docker/db/data:/var/lib/postgresql/data:rw
 ###< doctrine/doctrine-bundle ###
 
+  gallery-dl:
+    image: qx6ghqkz/gallery-dl-server:latest
+    container_name: gallery-dl
+    ports:
+      - "9080:9080"
+    environment:
+      - "UID=1000"
+      - "GID=1000"
+    volumes:
+      - "./docker/gallery-dl/config:/config"
+      - "./docker/gallery-dl/downloads:/gallery-dl"
+    restart: on-failure
+
 # Mercure is installed as a Caddy module, prevent the Flex recipe from installing another service
 ###> symfony/mercure-bundle ###
 ###< symfony/mercure-bundle ###
