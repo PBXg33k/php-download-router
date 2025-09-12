@@ -2,32 +2,30 @@
 
 namespace App\Service\Downloader;
 
+use App\Enum\DownloaderTypeEnum;
 use Psr\Http\Message\UriInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
-class GalleryDlWebDownloader
+class GalleryDlWebDownloader implements DownloaderInterface
 {
     public function __construct(
         protected(set) LoggerInterface $logger,
         protected(set) HttpClientInterface $httpClient,
-        protected(set) string $hostUrl = 'http://gallery-dl:9080',
+        protected(set) string $hostUrl = 'http://gallerydl:9080',
     )
     {
     }
 
-    public function sendDownloadUrlToServer(UriInterface $uri)
+    public function download(UriInterface $uri): true
     {
         $this->logger->info('Sending URL to gallery-dl web server', ['url' => (string)$uri]);
-
-        // curl -X POST --data-urlencode "url={{url}}" http://{{host}}:{{port}}/gallery-dl/q
 
         $response = $this->httpClient->request('POST', $this->hostUrl . '/gallery-dl/q', [
             'body' => [
                 'url' => (string)$uri,
             ],
         ]);
-
 
         if (200 !== $response->getStatusCode()) {
             $this->logger->error('Failed to send URL to gallery-dl web server', [
@@ -40,5 +38,366 @@ class GalleryDlWebDownloader
 
         $this->logger->info('Successfully sent URL to gallery-dl web server', ['url' => (string)$uri]);
         return true;
+    }
+
+    public function getLogFromServer()
+    {
+        $this->logger->info('Fetching log from gallery-dl web server');
+
+        $response = $this->httpClient->request('GET', $this->hostUrl . '/stream/logs');
+
+        if (200 !== $response->getStatusCode()) {
+            $this->logger->error('Failed to fetch log from gallery-dl web server', [
+                'status_code' => $response->getStatusCode(),
+                'response' => $response->getContent(false),
+            ]);
+            throw new \RuntimeException('Failed to fetch log from gallery-dl web server');
+        }
+
+        $this->logger->info('Successfully fetched log from gallery-dl web server');
+        return $response->getContent();
+    }
+
+    public function getDownloaderType(): DownloaderTypeEnum
+    {
+        return DownloaderTypeEnum::WEB_DOWNLOADER;
+    }
+
+    public function getSupportedDomains(): array
+    {
+        /**
+         * List of supported domains by gallery-dl as of 2025-09-12
+         * Source: https://github.com/mikf/gallery-dl/blob/master/docs/supportedsites.md
+         *
+         * Note: This list may be outdated, please refer to the source for the most up-to-date list.
+         */
+
+        return [
+            "https://2ch.hk/",
+            "https://sturdychan.help/",
+            "https://35photo.pro/",
+            "http://behoimi.org/",
+            "https://4archive.org/",
+            "https://www.4chan.org/",
+            "https://4chanarchives.com/",
+            "https://500px.com/",
+            "https://8chan.moe/",
+            "https://comics.8muses.com/",
+            "https://www.myportfolio.com/",
+            "https://www.adultempire.com/",
+            "https://agn.ph/",
+            "https://arca.live/",
+            "https://architizer.com/",
+            "https://archiveofourown.org/",
+            "https://www.artstation.com/",
+            "https://bato.to/",
+            "https://bbc.co.uk/",
+            "https://www.behance.net/",
+            "https://www.bellazon.com/",
+            "https://www.bilibili.com/",
+            "https://bsky.app/",
+            "https://www.boosty.to/",
+            "https://booth.pm/",
+            "https://bunkr.si/",
+            "https://catbox.moe/",
+            "https://chzzk.naver.com/",
+            "https://ci-en.net/",
+            "https://www.civitai.com/",
+            "https://comicvine.gamespot.com/",
+            "https://comick.io/",
+            "https://coomer.st/",
+            "https://cyberdrop.me/",
+            "https://cyberfile.me/",
+            "https://danke.moe/",
+            "https://desktopography.net/",
+            "https://www.deviantart.com/",
+            "https://discord.com/",
+            "https://dynasty-scans.com/",
+            "https://e-hentai.org/",
+            "https://aryion.com/",
+            "https://www.erome.com/",
+            "https://everia.club",
+            "https://exhentai.org/",
+            "https://www.facebook.com/",
+            "https://fansly.com/",
+            "https://fantia.jp/",
+            "https://fapachi.com/",
+            "https://fapello.com/",
+            "https://www.flickr.com/",
+            "https://www.furaffinity.net/",
+            "https://furry34.com/",
+            "https://fuskator.com/",
+            "https://www.2chan.net/",
+            "https://gelbooru.com/",
+            "https://www.girlswithmuscle.com/",
+            "https://girlsreleased.com/",
+            "https://gofile.io/",
+            "https://hatenablog.com",
+            "https://www.hentai-foundry.com/",
+            "https://hentai2read.com/",
+            "https://hentaihand.com/",
+            "https://hentaihere.com/",
+            "https://hentainexus.com/",
+            "https://hiperdex.com/",
+            "https://hitomi.la/",
+            "https://hotleak.vip/",
+            "https://www.idolcomplex.com/",
+            "https://www.imagebam.com/",
+            "https://imgchest.com/",
+            "https://www.imagefap.com/",
+            "https://imgbb.com/",
+            "https://imgbox.com/",
+            "https://imgth.com/",
+            "https://imgur.com/",
+            "https://inkbunny.net/",
+            "https://www.instagram.com/",
+            "https://issuu.com/",
+            "https://itaku.ee/",
+            "https://itch.io/",
+            "https://www.iwara.tv/",
+            "http://www.keenspot.com/",
+            "https://kemono.cr/",
+            "https://downloads.khinsider.com/",
+            "https://komikcast.li/",
+            "https://leakgallery.com",
+            "https://lensdump.com/",
+            "https://lexica.art/",
+            "https://lightroom.adobe.com/",
+            "http://blog.livedoor.jp/",
+            "https://www.lofter.com/",
+            "https://members.luscious.net/",
+            "https://manga.madokami.al/",
+            "https://fanfox.net/",
+            "https://www.mangahere.cc/",
+            "https://mangadex.org/",
+            "https://mangapark.net/",
+            "https://mangaread.org/",
+            "https://www.mangoxo.com/",
+            "https://motherless.com/",
+            "https://myhentaigallery.com/",
+            "https://blog.naver.com/",
+            "https://comic.naver.com/",
+            "https://nekohouse.su/",
+            "https://www.newgrounds.com/",
+            "https://nhentai.net/",
+            "https://seiga.nicovideo.jp/",
+            "https://nozomi.la/",
+            "https://nsfwalbum.com/",
+            "https://nudostar.tv/",
+            "https://www.patreon.com/",
+            "https://pexels.com/",
+            "https://www.vogue.com/photovogue/",
+            "https://picarto.tv/",
+            "https://pictoa.com/",
+            "https://piczel.tv/",
+            "https://www.pillowfort.social/",
+            "https://www.pinterest.com/",
+            "https://pixeldrain.com/",
+            "https://www.pixiv.net/",
+            "https://www.pixiv.net/novel",
+            "https://www.fanbox.cc/",
+            "https://www.pixnet.net/",
+            "https://www.plurk.com/",
+            "https://poipiku.com/",
+            "http://www.poringa.net/",
+            "https://www.pornhub.com/",
+            "https://www.pornpics.com/",
+            "https://rule34vault.com/",
+            "https://rawkuma.net/",
+            "https://readcomiconline.li/",
+            "https://realbooru.com/",
+            "https://redbust.com/",
+            "https://www.reddit.com/",
+            "https://redgifs.com/",
+            "https://rule34.paheal.net/",
+            "https://rule34.us/",
+            "https://rule34.xyz/",
+            "https://saint2.su/",
+            "https://sankaku.app/",
+            "https://news.sankakucomplex.com/",
+            "https://niyaniya.moe/",
+            "https://scrolller.com/",
+            "https://raw.senmanga.com/",
+            "https://www.sex.com/",
+            "https://simpcity.cr/",
+            "https://www.simply-hentai.com/",
+            "https://sizebooru.com/",
+            "https://skeb.jp/",
+            "https://www.slickpic.com/",
+            "https://www.slideshare.net/",
+            "https://www.smugmug.com/",
+            "https://soundgasm.net/",
+            "https://speakerdeck.com/",
+            "https://www.steamgriddb.com",
+            "https://www.subscribestar.com/",
+            "https://tapas.io/",
+            "https://tcbscans.me/",
+            "https://telegra.ph/",
+            "https://tenor.com/",
+            "https://www.tiktok.com/",
+            "https://tmohentai.com/",
+            "https://toyhou.se/",
+            "https://www.tsumino.com/",
+            "https://www.tumblr.com/",
+            "https://tumblrgallery.xyz/",
+            "https://tungsten.run/",
+            "https://twibooru.org/",
+            "https://x.com/",
+            "https://unsplash.com/",
+            "https://uploadir.com/",
+            "https://urlgalleries.net/",
+            "https://vipergirls.to/",
+            "https://vk.com/",
+            "https://vsco.co/",
+            "https://wallhaven.cc/",
+            "https://wallpapercave.com/",
+            "https://warosu.org/",
+            "https://www.weasyl.com/",
+            "https://webmshare.com/",
+            "https://www.webtoons.com/",
+            "https://weebcentral.com/",
+            "https://www.weibo.com/",
+            "https://www.wikiart.org/",
+            "https://www.wikifeet.com/",
+            "https://www.wikifeetx.com/",
+            "https://www.xasiat.com",
+            "https://xfolio.jp/",
+            "https://xhamster.com/",
+            "https://www.xvideos.com/",
+            "https://yiffverse.com/",
+            "https://www.zerochan.net/",
+            "https://kabe-uchiroom.com/",
+            "https://vanilla-rock.com/",
+            "https://www.blogger.com/",
+            "https://jpg6.su/",
+            "https://img.kiwi/",
+            "https://imagepond.net/",
+            "https://danbooru.donmai.us/",
+            "https://booru.allthefallen.moe/",
+            "https://aibooru.online/",
+            "https://booru.borvar.art/",
+            "https://e621.net/",
+            "https://e926.net/",
+            "https://e6ai.net/",
+            "https://the-collection.booru.org/",
+            "https://illusioncards.booru.org/",
+            "https://allgirl.booru.org/",
+            "https://drawfriends.booru.org/",
+            "https://vidyart2.booru.org/",
+            "https://rule34.xxx/",
+            "https://safebooru.org/",
+            "https://tbib.org/",
+            "https://hypnohub.net/",
+            "https://xbooru.com/",
+            "https://hentai-cosplay-xxx.com/",
+            "https://hentai-img-xxx.com/",
+            "https://porn-image.com/",
+            "https://imhentai.xxx/",
+            "https://hentaiera.com/",
+            "https://hentairox.com/",
+            "https://hentaifox.com/",
+            "https://hentaienvy.com/",
+            "https://hentaizap.com/",
+            "https://94chan.org/",
+            "https://bbw-chan.link/",
+            "https://kohlchan.net/",
+            "https://endchan.org/",
+            "https://www.nelomanga.net/",
+            "https://www.natomanga.com/",
+            "https://www.manganato.gg/",
+            "https://www.mangakakalot.gg/",
+            "https://misskey.io/",
+            "https://misskey.design/",
+            "https://misskey.art/",
+            "https://lesbian.energy/",
+            "https://sushi.ski/",
+            "https://nijie.info/",
+            "https://horne.red/",
+            "https://derpibooru.org/",
+            "https://ponybooru.org/",
+            "https://furbooru.org/",
+            "https://raddle.me/",
+            "http://reactor.cc/",
+            "http://joyreactor.cc/",
+            "http://pornreactor.cc/",
+            "http://thatpervert.com/",
+            "https://booru.cavemanon.xyz/",
+            "https://rule34hentai.net/",
+            "https://vidya.pics/",
+            "https://noz.rip/booru/",
+            "https://co.llection.pics/",
+            "https://booru.bcbnsfw.space/",
+            "https://snootbooru.com/",
+            "https://www.visuabusters.com/booru/",
+            "https://bit.ly/",
+            "https://t.co/",
+            "https://8kun.top/",
+            "https://smuglo.li/",
+            "https://boards.guro.cx/",
+            "https://www.wikimedia.org/",
+            "https://species.wikimedia.org/",
+            "https://commons.wikimedia.org/",
+            "https://www.mediawiki.org/",
+            "https://www.fandom.com/",
+            "https://www.wiki.gg/",
+            "https://www.mariowiki.com/",
+            "https://bulbapedia.bulbagarden.net/",
+            "https://www.pidgi.net/",
+            "https://azurlane.koumakan.jp/",
+            "https://yande.re/",
+            "https://konachan.com/",
+            "https://www.sakugabooru.com/",
+            "https://lolibooru.moe/",
+            "https://archive.4plebs.org/",
+            "https://archived.moe/",
+            "https://archiveofsins.com/",
+            "https://arch.b4k.dev/",
+            "https://desuarchive.org/",
+            "https://boards.fireden.net/",
+            "https://archive.palanq.win/",
+            "https://rbt.asia/",
+            "https://thebarchive.com/",
+            "https://mastodon.social/",
+            "https://pawoo.net/",
+            "https://baraag.net/",
+            "https://chelseacrew.com/",
+            "https://www.fashionnova.com/",
+            "https://loungeunderwear.com/",
+            "https://michaels.com.au/",
+            "https://modcloth.com/",
+            "https://www.ohpolly.com/",
+            "https://www.omgmiamiswimwear.com/",
+            "https://pinupgirlclothing.com/",
+            "https://www.raidlondon.com/",
+            "https://www.unique-vintage.com/",
+            "https://www.windsorstore.com/",
+            "https://acidimg.cc/",
+            "https://fappic.com/",
+            "https://imagetwist.com/",
+            "https://www.imagevenue.com/",
+            "https://imgadult.com/",
+            "http://imgclick.net/",
+            "https://imgdrive.net/",
+            "https://imgspice.com/",
+            "https://imgtaxi.com/",
+            "https://imgwallet.com/",
+            "https://imx.to/",
+            "https://picstate.com/",
+            "https://pixhost.to/",
+            "https://postimages.org/",
+            "https://silverpic.com/",
+            "https://www.turboimagehost.com/",
+            "https://vipr.im/",
+        ];
+    }
+
+    public function supportsUri(UriInterface $uri): bool
+    {
+        foreach ($this->getSupportedDomains() as $domain) {
+            if (str_contains($uri->getHost(), parse_url($domain, PHP_URL_HOST))) {
+                return true;
+            }
+        }
+        return false;
     }
 }
