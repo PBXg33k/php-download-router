@@ -24,6 +24,11 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
 	file \
 	gettext \
 	git \
+	zlib1g-dev \
+	libcurl4-openssl-dev \
+	libbrotli-dev \
+	libicu-dev \
+	libgcrypt20-dev \
 	&& rm -rf /var/lib/apt/lists/*
 
 # https://getcomposer.org/doc/03-cli.md#composer-allow-superuser
@@ -34,11 +39,14 @@ ENV PHP_INI_SCAN_DIR=":$PHP_INI_DIR/app.conf.d"
 RUN set -eux; \
 	install-php-extensions \
 		@composer \
+		amqp \
 		apcu \
 		intl \
 		opcache \
+		redis \
+		yaml \
 		zip \
-	;
+		http
 
 ###> recipes ###
 ###> doctrine/doctrine-bundle ###
