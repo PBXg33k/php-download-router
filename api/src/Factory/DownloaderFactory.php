@@ -40,6 +40,11 @@ class DownloaderFactory
         return $this->downloaders[$identifier] ?? null;
     }
 
+    public function isValidDownloader(string $identifier): bool
+    {
+        return isset($this->downloaders[$identifier]);
+    }
+
     /**
      * @param UriInterface $uri
      * @return iterable<\App\Service\Downloader\DownloaderInterface>

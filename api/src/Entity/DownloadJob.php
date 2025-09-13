@@ -40,6 +40,9 @@ class DownloadJob
     #[ORM\Column(enumType: DownloadStateEnum::class)]
     private ?DownloadStateEnum $state = null;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $downloader = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -89,6 +92,18 @@ class DownloadJob
     public function setState(DownloadStateEnum $state): static
     {
         $this->state = $state;
+
+        return $this;
+    }
+
+    public function getDownloader(): ?string
+    {
+        return $this->downloader;
+    }
+
+    public function setDownloader(string $downloader): static
+    {
+        $this->downloader = $downloader;
 
         return $this;
     }
