@@ -11,3 +11,8 @@ api_platform:
             vary: ['Content-Type', 'Authorization', 'Origin']
     messenger:
         enabled: true
+    formats:
+        jsonld: ["application/ld+json"]
+        json: ["application/json"]
+        xml: ["application/xml", "text/xml"]
+        yaml: ["application/x-yaml"]

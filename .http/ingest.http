@@ -40,3 +40,14 @@ Content-Type: application/ld+json
   ],
   "downloader": "mock"
 }
+
+### Metube example
+POST {{ client.host }}/add
+Content-Type: application/json
+
+{
+    "quality":"best",
+    "format":"any",
+    "url":"https://civitai.com/images/93433767",
+    "auto_start":true
+}
