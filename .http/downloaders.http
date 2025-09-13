@@ -1,0 +1,8 @@
+### GET request to example server
+GET {{ client.host }}/downloaders  HTTP/1.1
+
+### Get GalleryDL-CLI downloader
+GET {{ client.host }}/downloaders/gallery-dl-cli  HTTP/1.1
+
+### Get GalleryDL-Web downloader
+GET {{ client.host }}/downloaders/gallery-dl-web  HTTP/1.1
