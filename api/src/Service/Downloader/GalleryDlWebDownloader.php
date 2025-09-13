@@ -3,6 +3,7 @@
 namespace App\Service\Downloader;
 
 use App\Enum\DownloaderTypeEnum;
+use App\Model\DownloadJobInterface;
 use Psr\Http\Message\UriInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
@@ -17,8 +18,9 @@ class GalleryDlWebDownloader implements DownloaderInterface
     {
     }
 
-    public function download(UriInterface $uri): true
+    public function download(DownloadJobInterface $downloadJob): true
     {
+        $uri = $downloadJob->getUrl();
         $this->logger->info('Sending URL to gallery-dl web server', ['url' => (string)$uri]);
 
         $response = $this->httpClient->request('POST', $this->hostUrl . '/gallery-dl/q', [

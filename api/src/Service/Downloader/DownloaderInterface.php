@@ -3,6 +3,7 @@
 namespace App\Service\Downloader;
 
 use App\Enum\DownloaderTypeEnum;
+use App\Model\DownloadJobInterface;
 use Psr\Http\Message\UriInterface;
 
 interface DownloaderInterface
@@ -17,10 +18,10 @@ interface DownloaderInterface
      * Only return true if the download request was successfully sent to the downloader service.
      * In any other case, throw an exception, which should be handled by the caller.
      *
-     * @param UriInterface $uri
+     * @param DownloadJobInterface $downloadJob
      * @return true
      */
-    public function download(UriInterface $uri): true;
+    public function download(DownloadJobInterface $downloadJob): true;
 
     public function getDownloaderType(): DownloaderTypeEnum;
 
