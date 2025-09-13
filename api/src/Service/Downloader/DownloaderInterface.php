@@ -18,7 +18,7 @@ interface DownloaderInterface
      * Only return true if the download request was successfully sent to the downloader service.
      * In any other case, throw an exception, which should be handled by the caller.
      *
-     * @param DownloadJobInterface $uri
+     * @param DownloadJobInterface $downloadJob
      * @return true
      */
     public function download(DownloadJobInterface $downloadJob): true;
