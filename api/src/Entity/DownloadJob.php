@@ -5,11 +5,16 @@ namespace App\Entity;
 use ApiPlatform\Metadata\Post;
 use App\Dto\DownloadJobDTO;
 use App\Enum\DownloadStateEnum;
+use App\Model\DownloadJobInterface;
+use App\Model\MetubeDownloadJob;
 use App\Repository\DownloadJobRepository;
 use App\State\DownloadJobQueuedProcessor;
+use App\State\MetubeDownloadJobProcessor;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
+use GuzzleHttp\Psr7\Uri;
+use Psr\Http\Message\UriInterface;
 
 #[ORM\Entity(repositoryClass: DownloadJobRepository::class)]
 #[Post(
@@ -19,7 +24,17 @@ use Gedmo\Timestampable\Traits\TimestampableEntity;
     messenger: 'input',
     processor: DownloadJobQueuedProcessor::class
 )]
-class DownloadJob
+#[Post(
+    uriTemplate: '/add',
+    formats: ['json' => ['application/json']],
+    status: 202,
+    description: "Endpoint for the Metube browser extension to add download jobs.",
+    input: MetubeDownloadJob::class,
+    output: false,
+    messenger: 'input',
+    processor: MetubeDownloadJobProcessor::class
+)]
+class DownloadJob implements DownloadJobInterface
 {
     use TimestampableEntity;
 
@@ -106,5 +121,10 @@ class DownloadJob
         $this->downloader = $downloader;
 
         return $this;
+    }
+
+    public function getUrl(): UriInterface
+    {
+        return new Uri($this->uri);
     }
 }

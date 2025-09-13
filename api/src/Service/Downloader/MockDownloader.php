@@ -3,6 +3,7 @@
 namespace App\Service\Downloader;
 
 use App\Enum\DownloaderTypeEnum;
+use App\Model\DownloadJobInterface;
 use Psr\Http\Message\UriInterface;
 
 class MockDownloader implements DownloaderInterface
@@ -12,7 +13,7 @@ class MockDownloader implements DownloaderInterface
         return 'mock';
     }
 
-    public function download(UriInterface $uri): true
+    public function download(DownloadJobInterface $downloadJob): true
     {
         // Mock download implementation
         return true;

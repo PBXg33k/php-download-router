@@ -3,6 +3,7 @@
 namespace App\Service\Downloader;
 
 use App\Enum\DownloaderTypeEnum;
+use App\Model\DownloadJobInterface;
 use Psr\Http\Message\UriInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -18,22 +19,41 @@ class GalleryDlCliDownloader implements DownloaderInterface
         private(set) string $configPath,
         #[Autowire(param: 'downloader.gallery_dl_cli.binary_path')]
         private(set) string $binaryPath,
+        #[Autowire(param: 'downloader.gallery_dl_cli.downloads_dir')]
+        private(set) string $downloadPath,
         private LoggerInterface $logger
     )
     {
     }
 
-    public function download(UriInterface $uri): true
+    public function download(DownloadJobInterface $downloadJob): true
     {
+        $this->logger->debug(
+            'Starting download with gallery-dl CLI',
+            [
+                'url' => $downloadJob->getUrl()->__toString(),
+                'configPath' => $this->configPath,
+                'binaryPath' => $this->binaryPath,
+                'downloadPath' => $this->downloadPath,
+            ]
+        );
         $this->createConfigFileIfNotExists();
+        $this->createDownloadDirectoryIfNotExists();
 
         // TODO: Implement download() method.
         $downloadProcess = new Process([
             $this->binaryPath,
             '--config', $this->configPath,
-            $uri->__toString()
-        ]);
-        $downloadProcess->mustRun();
+            $downloadJob->getUrl()->__toString()
+        ], $this->downloadPath);
+
+        $downloadProcess->mustRun(function(string $type, string $buffer)  {
+            if (Process::ERR === $type) {
+                $this->logger->error('gallery-dl error output: ' . $buffer);
+            } else {
+                $this->logger->info('gallery-dl output: ' . $buffer);
+            }
+        });
         if (!$downloadProcess->isSuccessful()) {
             throw new \RuntimeException($downloadProcess->getErrorOutput());
         } else {
@@ -114,6 +134,12 @@ class GalleryDlCliDownloader implements DownloaderInterface
         }
     }
 
+    private function createDownloadDirectoryIfNotExists(): void
+    {
+        if (!is_dir($this->downloadPath)) {
+            mkdir($this->downloadPath, 0755, true);
+        }
+    }
 
     private function fetchSupportedDomains(): array
     {
