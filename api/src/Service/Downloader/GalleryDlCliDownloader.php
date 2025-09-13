@@ -133,7 +133,7 @@ class GalleryDlCliDownloader implements DownloaderInterface
             }
         }
     }
-    
+
     private function createDownloadDirectoryIfNotExists(): void
     {
         if (!is_dir($this->downloadPath)) {
