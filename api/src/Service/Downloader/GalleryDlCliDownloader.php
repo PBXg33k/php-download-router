@@ -19,7 +19,7 @@ class GalleryDlCliDownloader implements DownloaderInterface
         private(set) string $configPath,
         #[Autowire(param: 'downloader.gallery_dl_cli.binary_path')]
         private(set) string $binaryPath,
-        #[Autowire(param: 'downloader.gallery_dl_cli.cownloads_dir')]
+        #[Autowire(param: 'downloader.gallery_dl_cli.downloads_dir')]
         private(set) string $downloadPath,
         private LoggerInterface $logger
     )
