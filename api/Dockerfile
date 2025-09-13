@@ -12,15 +12,16 @@ FROM dunglas/frankenphp:1-php8.4 AS frankenphp_upstream
 # https://docs.docker.com/compose/compose-file/#target
 
 ## Download the latest gallery-dl & yt-dlp binary from GitHub
+# hadolint ignore=DL3008
 RUN apt-get update && apt-get install --no-install-recommends -y \
     ca-certificates \
 	curl \
     jq \
     wget \
 	&& rm -rf /var/lib/apt/lists/* \
-    && wget https://github.com/mikf/gallery-dl/releases/latest/download/gallery-dl.bin -O /usr/local/bin/gallery-dl \
+    && wget --progress=dot:giga https://github.com/mikf/gallery-dl/releases/latest/download/gallery-dl.bin -O /usr/local/bin/gallery-dl \
     && chmod +x /usr/local/bin/gallery-dl \
-    && wget https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux -O /usr/local/bin/yt-dlp \
+    && wget --progress=dot:giga https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux -O /usr/local/bin/yt-dlp \
     && chmod +x /usr/local/bin/yt-dlp
 
 # Base FrankenPHP image
