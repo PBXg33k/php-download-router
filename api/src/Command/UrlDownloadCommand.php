@@ -7,6 +7,7 @@ use App\Service\Downloader\DownloaderInterface;
 use GuzzleHttp\Psr7\Utils;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Completion\CompletionInput;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -32,8 +33,22 @@ class UrlDownloadCommand extends Command
 
     protected function configure(): void
     {
+        $downloaderCollection = $this->downloaderCollection;
+
         $this
             ->addArgument('url', InputArgument::REQUIRED, 'URL to download')
+            ->addOption(
+                name: 'downloader',
+                mode: InputArgument::OPTIONAL,
+                description: 'Downloader to use (if multiple are available for the URL)',
+                suggestedValues: function(CompletionInput $input) use ($downloaderCollection) {
+                    $suggestions = [];
+                    foreach ($downloaderCollection->getEnabledDownloaders() as $downloader) {
+                        $suggestions[] = $downloader->getIdentifier();
+                    }
+                    return $suggestions;
+                }
+            )
         ;
     }
 
@@ -43,12 +58,26 @@ class UrlDownloadCommand extends Command
 
         $url = $input->getArgument('url');
 
-        $downloaders = $this->downloaderCollection->getDownloadersByUri(Utils::uriFor($url));
+        $selectedDownloader = $input->getOption('downloader');
+        if($selectedDownloader) {
+            $this->downloader = $this->downloaderCollection->getDownloaderByIdentifier($selectedDownloader);
+            if(!$this->downloader) {
+                $io->error(sprintf('Downloader with identifier "%s" not found!', $selectedDownloader));
+                return Command::FAILURE;
+            }
+            if(!$this->downloader->supportsUri(Utils::uriFor($url))) {
+                $io->error(sprintf('Downloader with identifier "%s" does not support the given URL!', $selectedDownloader));
+                return Command::FAILURE;
+            }
+        } else {
+            // No downloader selected, try to find one that supports the URL
+            $downloaders = $this->downloaderCollection->getDownloadersByUri(Utils::uriFor($url));
 
-        // Just take the first one for now, later we can add a choice if multiple are found
-        foreach($downloaders as $downloader) {
-            $this->downloader = $downloader;
-            break;
+            // Just take the first one for now, later we can add a choice if multiple are found
+            foreach($downloaders as $downloader) {
+                $this->downloader = $downloader;
+                break;
+            }
         }
 
 
