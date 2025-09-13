@@ -2,24 +2,29 @@
 
 namespace App\Command;
 
-use App\Service\Downloader\GalleryDlWebDownloader;
+use App\Factory\DownloaderFactory;
+use App\Service\Downloader\DownloaderInterface;
 use GuzzleHttp\Psr7\Utils;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(
     name: 'app:url:download',
-    description: 'Add a short description for your command',
+    description: 'Send a URL to the download server for processing',
 )]
 class UrlDownloadCommand extends Command
 {
+    /**
+     * @var \App\Service\Downloader\DownloaderInterface|mixed|null
+     */
+    private ?DownloaderInterface $downloader = null;
+
     public function __construct(
-        private(set) GalleryDlWebDownloader $downloader
+        private(set) DownloaderFactory $downloaderCollection
     )
     {
         parent::__construct();
@@ -29,7 +34,6 @@ class UrlDownloadCommand extends Command
     {
         $this
             ->addArgument('url', InputArgument::REQUIRED, 'URL to download')
-            ->addOption('option1', null, InputOption::VALUE_NONE, 'Option description')
         ;
     }
 
@@ -38,24 +42,23 @@ class UrlDownloadCommand extends Command
         $io = new SymfonyStyle($input, $output);
 
         $url = $input->getArgument('url');
+
+        $downloaders = $this->downloaderCollection->getDownloadersByUri(Utils::uriFor($url));
+
+        // Just take the first one for now, later we can add a choice if multiple are found
+        foreach($downloaders as $downloader) {
+            $this->downloader = $downloader;
+            break;
+        }
+
+
         $io->info(sprintf('Downloading URL: %s', $url));
-        $this->downloader->sendDownloadUrlToServer(Utils::uriFor($url));
-
-
-//        $arg1 = $input->getArgument('arg1');
-
-//        if ($arg1) {
-//            $io->note(sprintf('You passed an argument: %s', $arg1));
-//        }
-
-//        if ($input->getOption('option1')) {
-//            // ...
-//        }
-
-
-
-        $io->success('You have a new command! Now make it your own! Pass --help to see your options.');
-
-        return Command::SUCCESS;
+        if($this->downloader->download(Utils::uriFor($url))) {
+            $io->success('URL sent to download server successfully!');
+            return Command::SUCCESS;
+        } else {
+            $io->error('Failed to send URL to download server!');
+            return Command::FAILURE;
+        }
     }
 }

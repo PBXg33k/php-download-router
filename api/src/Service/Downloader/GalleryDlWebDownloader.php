@@ -124,7 +124,6 @@ class GalleryDlWebDownloader implements DownloaderInterface
             "https://chelseacrew.com/",
             "https://chzzk.naver.com/",
             "https://ci-en.net/",
-            "https://civitai.com/",
             "https://co.llection.pics/",
             "https://comic.naver.com/",
             "https://comick.io/",
@@ -400,5 +399,10 @@ class GalleryDlWebDownloader implements DownloaderInterface
             }
         }
         return false;
+    }
+
+    public function getIdentifier(): string
+    {
+        return 'gallery-dl-web';
     }
 }

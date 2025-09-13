@@ -17,4 +17,12 @@ enum DownloaderTypeEnum
      * Usually called with a shell command using PHP's exec() or Symfony's Process component.
      */
     case CLI_DOWNLOADER;
+
+    public function label(): string
+    {
+        return match ($this) {
+            self::WEB_DOWNLOADER => 'Web Downloader',
+            self::CLI_DOWNLOADER => 'CLI Downloader',
+        };
+    }
 }
