@@ -50,10 +50,11 @@ class DownloadJobQueuedProcessor implements ProcessorInterface
             ->setUri($data->uri)
             ->setUserAgent($data->userAgent ?? null)
             ->setCookies($data->cookies ?? null)
-            ->setState(DownloadStateEnum::PENDING)
-            ->setDownloader($data->downloader ?? null);
+            ->setState(DownloadStateEnum::PENDING);
 
-        dump($data, $downloadJob);
+        if (isset($data->downloader)) {
+            $downloadJob->setDownloader($data->downloader);
+        }
 
         // Try converting the uri to a valid URI
         // If it fails, throw a 400 error
