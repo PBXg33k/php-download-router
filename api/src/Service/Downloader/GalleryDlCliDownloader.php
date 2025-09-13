@@ -47,7 +47,7 @@ class GalleryDlCliDownloader implements DownloaderInterface
             $downloadJob->getUrl()->__toString()
         ], $this->downloadPath);
 
-        $downloadProcess->mustRun(function($type, $buffer)  {
+        $downloadProcess->mustRun(function(string $type, string $buffer)  {
             if (Process::ERR === $type) {
                 $this->logger->error('gallery-dl error output: ' . $buffer);
             } else {
