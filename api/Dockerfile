@@ -11,6 +11,18 @@ FROM dunglas/frankenphp:1-php8.4 AS frankenphp_upstream
 # https://docs.docker.com/develop/develop-images/multistage-build/#stop-at-a-specific-build-stage
 # https://docs.docker.com/compose/compose-file/#target
 
+## Download the latest gallery-dl & yt-dlp binary from GitHub
+# hadolint ignore=DL3008
+RUN apt-get update && apt-get install --no-install-recommends -y \
+    ca-certificates \
+	curl \
+    jq \
+    wget \
+	&& rm -rf /var/lib/apt/lists/* \
+    && wget --progress=dot:giga https://github.com/mikf/gallery-dl/releases/latest/download/gallery-dl.bin -O /usr/local/bin/gallery-dl \
+    && chmod +x /usr/local/bin/gallery-dl \
+    && wget --progress=dot:giga https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux -O /usr/local/bin/yt-dlp \
+    && chmod +x /usr/local/bin/yt-dlp
 
 # Base FrankenPHP image
 FROM frankenphp_upstream AS frankenphp_base
@@ -24,6 +36,11 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
 	file \
 	gettext \
 	git \
+	zlib1g-dev \
+	libcurl4-openssl-dev \
+	libbrotli-dev \
+	libicu-dev \
+	libgcrypt20-dev \
 	&& rm -rf /var/lib/apt/lists/*
 
 # https://getcomposer.org/doc/03-cli.md#composer-allow-superuser
@@ -34,11 +51,14 @@ ENV PHP_INI_SCAN_DIR=":$PHP_INI_DIR/app.conf.d"
 RUN set -eux; \
 	install-php-extensions \
 		@composer \
+		amqp \
 		apcu \
 		intl \
 		opcache \
+		redis \
+		yaml \
 		zip \
-	;
+		http
 
 ###> recipes ###
 ###> doctrine/doctrine-bundle ###

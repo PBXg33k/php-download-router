@@ -29,4 +29,4 @@ build:
 Arguments := $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
 
 php:
-	$(DOCKER_COMPOSE_PREFIX) docker compose exec php $(Arguments)
+	$(DOCKER_COMPOSE_PREFIX) docker compose exec -it php $(Arguments)
