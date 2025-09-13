@@ -45,6 +45,9 @@ jobs:
         name: Start services
         run: docker compose up --wait --no-build
       -
+        name: Install composer dependencies
+        run: docker compose exec -T php composer install --prefer-dist --no-progress --no-suggest --optimize-autoloader
+      -
         name: Check HTTP reachability
         run: curl -v --fail-with-body http://localhost
       -
