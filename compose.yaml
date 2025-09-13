@@ -3,6 +3,7 @@ services:
     image: ${IMAGES_PREFIX:-}app-php
     depends_on:
       - database
+      - rabbitmq
     restart: unless-stopped
     environment:
       PWA_UPSTREAM: pwa:3000
@@ -41,6 +42,7 @@ services:
     image: ${IMAGES_PREFIX:-}app-php
     depends_on:
       - database
+      - rabbitmq
     restart: unless-stopped
     environment:
       PWA_UPSTREAM: pwa:3000
@@ -53,11 +55,11 @@ services:
       MERCURE_URL: ${CADDY_MERCURE_URL:-http://php/.well-known/mercure}
       MERCURE_PUBLIC_URL: ${CADDY_MERCURE_PUBLIC_URL:-https://${SERVER_NAME:-localhost}:${HTTPS_PORT:-443}/.well-known/mercure}
       MERCURE_JWT_SECRET: ${CADDY_MERCURE_JWT_SECRET:-!ChangeThisMercureHubJWTSecretKey!}
-    command: bin/console messenger:consume async -vv
+    command: bin/console messenger:consume async --limit=100 -vv
     healthcheck:
-      test: ["CMD", "bin/console", "about"]
+      test: ["CMD", "true"]
       timeout: 5s
-      retries: 5
+      retries: 10
       start_period: 60s
   
   pwa:
@@ -89,6 +91,23 @@ services:
       # - ./api/docker/db/data:/var/lib/postgresql/data:rw
 ###< doctrine/doctrine-bundle ###
 
+  rabbitmq:
+    image: rabbitmq:latest
+    container_name: rabbitmq
+    restart: always
+    ports:
+      - 5672:5672
+      - 15672:15672
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    configs:
+      - source: rabbitmq-plugins
+        target: /etc/rabbitmq/enabled_plugins
+    volumes:
+      - rabbitmq-lib:/var/lib/rabbitmq/
+      - rabbitmq-log:/var/log/rabbitmq
+
   gallery-dl:
     image: qx6ghqkz/gallery-dl-server:latest
     container_name: gallery-dl
@@ -106,6 +125,10 @@ services:
 ###> symfony/mercure-bundle ###
 ###< symfony/mercure-bundle ###
 
+configs:
+  rabbitmq-plugins:
+    content: "[rabbitmq_management]."
+
 volumes:
   caddy_data:
   caddy_config:
@@ -114,3 +137,5 @@ volumes:
 ###< doctrine/doctrine-bundle ###
 ###> symfony/mercure-bundle ###
 ###< symfony/mercure-bundle ###
+  rabbitmq-lib:
+  rabbitmq-log:
