@@ -3,6 +3,7 @@
 namespace App\Service\Downloader;
 
 use App\Enum\DownloaderTypeEnum;
+use App\Model\DownloadJobInterface;
 use Psr\Http\Message\UriInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -23,7 +24,7 @@ class GalleryDlCliDownloader implements DownloaderInterface
     {
     }
 
-    public function download(UriInterface $uri): true
+    public function download(DownloadJobInterface $downloadJob): true
     {
         $this->createConfigFileIfNotExists();
 
@@ -31,7 +32,7 @@ class GalleryDlCliDownloader implements DownloaderInterface
         $downloadProcess = new Process([
             $this->binaryPath,
             '--config', $this->configPath,
-            $uri->__toString()
+            $downloadJob->getUrl()->__toString()
         ]);
         $downloadProcess->mustRun();
         if (!$downloadProcess->isSuccessful()) {

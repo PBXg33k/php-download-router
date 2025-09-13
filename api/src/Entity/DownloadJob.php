@@ -5,11 +5,14 @@ namespace App\Entity;
 use ApiPlatform\Metadata\Post;
 use App\Dto\DownloadJobDTO;
 use App\Enum\DownloadStateEnum;
+use App\Model\DownloadJobInterface;
 use App\Repository\DownloadJobRepository;
 use App\State\DownloadJobQueuedProcessor;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
+use GuzzleHttp\Psr7\Uri;
+use Psr\Http\Message\UriInterface;
 
 #[ORM\Entity(repositoryClass: DownloadJobRepository::class)]
 #[Post(
@@ -19,7 +22,7 @@ use Gedmo\Timestampable\Traits\TimestampableEntity;
     messenger: 'input',
     processor: DownloadJobQueuedProcessor::class
 )]
-class DownloadJob
+class DownloadJob implements DownloadJobInterface
 {
     use TimestampableEntity;
 
@@ -106,5 +109,10 @@ class DownloadJob
         $this->downloader = $downloader;
 
         return $this;
+    }
+
+    public function getUrl(): UriInterface
+    {
+        return new Uri($this->uri);
     }
 }
