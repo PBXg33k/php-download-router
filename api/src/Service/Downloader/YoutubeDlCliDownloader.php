@@ -81,7 +81,7 @@ class YoutubeDlCliDownloader implements DownloaderInterface
         // run yt-dlp --simulate {$uri} and check the exit code
 
         $process = new Process([
-            'yt-dlp',
+            $this->binaryPath,
             '--simulate',
             $uri->__toString()
         ]);
