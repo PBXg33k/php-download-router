@@ -63,7 +63,7 @@ class DownloadJobQueuedProcessor implements ProcessorInterface
                 break; // Use the first matching downloader
             }
 
-            if(!$downloadJob->getDownloader()) {
+            if (!$downloadJob->getDownloader()) {
                 throw new BadRequestException(
                     'No downloader found for the given URI. Possible values: ' . implode(', ', array_map(fn($d) => $d->getIdentifier(), $this->downloaderFactory->getEnabledDownloaders()))
                 );
