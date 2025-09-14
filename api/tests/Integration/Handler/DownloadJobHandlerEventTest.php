@@ -77,12 +77,12 @@ class DownloadJobHandlerEventTest extends TestCase
             ->willReturn($mockDownloader);
 
         $this->entityManager
-            ->expects($this->exactly(2))
+            ->expects($this->once())
             ->method('persist')
             ->with($downloadJob);
 
         $this->entityManager
-            ->expects($this->exactly(2))
+            ->expects($this->once())
             ->method('flush');
 
         $this->handler->__invoke($downloadJob);
@@ -113,12 +113,12 @@ class DownloadJobHandlerEventTest extends TestCase
             ->willReturn([$mockDownloader]);
 
         $this->entityManager
-            ->expects($this->exactly(3))
+            ->expects($this->exactly(2))
             ->method('persist')
             ->with($downloadJob);
 
         $this->entityManager
-            ->expects($this->exactly(3))
+            ->expects($this->exactly(2))
             ->method('flush');
 
         $this->handler->__invoke($downloadJob);
@@ -129,7 +129,7 @@ class DownloadJobHandlerEventTest extends TestCase
         
         $updateEvent = array_shift($updateEvents);
         $this->assertSame($downloadJob, $updateEvent->getDownloadJob());
-        $this->assertStringContains('Downloader selected', $updateEvent->getUpdateMessage());
+        $this->assertStringContainsString('Downloader selected', $updateEvent->getUpdateMessage());
         $this->assertArrayHasKey('downloader', $updateEvent->getContext());
     }
 
@@ -149,12 +149,12 @@ class DownloadJobHandlerEventTest extends TestCase
             ->willReturn([$mockDownloader]);
 
         $this->entityManager
-            ->expects($this->exactly(3))
+            ->expects($this->exactly(2))
             ->method('persist')
             ->with($downloadJob);
 
         $this->entityManager
-            ->expects($this->exactly(3))
+            ->expects($this->exactly(2))
             ->method('flush');
 
         $this->expectException(\Exception::class);
