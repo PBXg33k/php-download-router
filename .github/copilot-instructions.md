@@ -215,4 +215,47 @@ docker compose exec -T php bin/console -e test doctrine:schema:validate
 curl -v --fail-with-body http://localhost  # API health check
 ```
 
+### Dockerfile Changes:
+**CRITICAL**: Whenever you change ANY `Dockerfile`, you MUST run:
+```bash
+make down && make build && make up
+```
+This ensures that Docker images are properly rebuilt and can boot successfully.
+
+### Migration Changes:
+**MANDATORY STEPS** when you create database migrations:
+
+**YOU MUST ensure you start from a clean slate:**
+1. **Remove all containers, volumes and traces:**
+   ```bash
+   make down
+   docker system prune -af --volumes
+   ```
+
+2. **Rebuild all images from scratch:**
+   ```bash
+   make build
+   # OR alternatively:
+   IMAGES_PREFIX=local docker compose build --no-cache --pull
+   ```
+
+3. **Start the entire stack:**
+   ```bash
+   make up
+   # Wait for all health checks to pass (up to 60 seconds)
+   ```
+
+4. **Run all migrations:**
+   ```bash
+   docker compose exec -T php bin/console doctrine:migrations:migrate --no-interaction
+   ```
+
+5. **Verify application serves content:**
+   ```bash
+   curl -v --fail-with-body http://localhost
+   # Should return HTTP 200 with API Platform documentation
+   ```
+
+**Application MUST be able to serve content** - if any step fails, debug before proceeding.
+
 **Trust these instructions** - only search for additional information if these instructions are incomplete or incorrect.
