@@ -12,15 +12,17 @@ FROM dunglas/frankenphp:1-php8.4 AS frankenphp_upstream
 # https://docs.docker.com/compose/compose-file/#target
 
 ## Download the latest gallery-dl & yt-dlp binary from GitHub
-# hadolint ignore=DL3008
+# hadolint ignore=DL3008,DL3013
 RUN apt-get update && apt-get install --no-install-recommends -y \
     ca-certificates \
 	curl \
     jq \
     wget \
+    python3-pip \
+    mkvtoolnix \
+    ffmpeg \
 	&& rm -rf /var/lib/apt/lists/* \
-    && wget --progress=dot:giga https://github.com/mikf/gallery-dl/releases/latest/download/gallery-dl.bin -O /usr/local/bin/gallery-dl \
-    && chmod +x /usr/local/bin/gallery-dl \
+    && pip3 install --no-cache-dir gallery-dl brotli psycopg[binary] --break-system-packages \
     && wget --progress=dot:giga https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux -O /usr/local/bin/yt-dlp \
     && chmod +x /usr/local/bin/yt-dlp \
     && wget --progress=dot:giga https://raw.githubusercontent.com/vishnubob/wait-for-it/81b1373f17855a4dc21156cfe1694c31d7d1792e/wait-for-it.sh -O /usr/local/bin/wait-for-it \
