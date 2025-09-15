@@ -53,9 +53,14 @@ jobs:
             pwa.cache-to=type=gha,scope=pwa-${{github.ref}},mode=max
       -
         name: Start services
+        id: start_services
         env:
           IMAGES_PREFIX: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}
         run: docker compose up --wait --no-build
+      -
+        name: Debug in case services do not start
+        if: failure() && steps.start_services.outcome == 'failure'
+        run: docker compose logs --no-color
       -
         name: Install composer dependencies
         run: docker compose exec -T php composer install --prefer-dist --no-progress --no-suggest --optimize-autoloader
