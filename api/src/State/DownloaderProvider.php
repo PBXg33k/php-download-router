@@ -8,6 +8,7 @@ use ApiPlatform\State\ProviderInterface;
 use App\Entity\Downloader;
 use App\Factory\DownloaderFactory;
 use App\Service\Downloader\DownloaderInterface;
+use Error;
 
 class DownloaderProvider implements ProviderInterface
 {
@@ -22,7 +23,7 @@ class DownloaderProvider implements ProviderInterface
      */
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): null|array|object
     {
-        if($operation instanceof CollectionOperationInterface) {
+        if ($operation instanceof CollectionOperationInterface) {
             $downloaders = [];
             foreach ($this->downloaderFactory->getEnabledDownloaders() as $downloader) {
                 $downloaders[] = $this->createDownloaderModelFromDownloaderService($downloader);
@@ -52,7 +53,7 @@ class DownloaderProvider implements ProviderInterface
                 // If the domain is a valid URL, extract the host.
                 $supportedDomains[] = $this->getHostNameFromUrl($domain);
                 continue;
-            } catch (\Error $e) {
+            } catch (Error $e) {
                 // Not a valid URL, treat as hostname.
                 $supportedDomains[] = $domain;
             }
