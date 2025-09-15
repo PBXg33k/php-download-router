@@ -2,6 +2,7 @@
 
 namespace App\Factory;
 
+use App\Service\Downloader\DownloaderInterface;
 use Psr\Http\Message\UriInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\AutowireIterator;
@@ -15,19 +16,19 @@ class DownloaderFactory
 
     public function __construct(
         #[AutoWireIterator('app.downloader')]
-        iterable $downloaders,
+        iterable                $downloaders,
         private LoggerInterface $logger,
     )
     {
         // Reindex the iterable to an array to avoid multiple iterations over the generator.
         foreach ($downloaders as $downloader) {
-            /** @var \App\Service\Downloader\DownloaderInterface $downloader */
+            /** @var DownloaderInterface $downloader */
             $this->downloaders[$downloader->getIdentifier()] = $downloader;
         }
     }
 
     /**
-     * @return iterable<\App\Service\Downloader\DownloaderInterface>
+     * @return iterable<DownloaderInterface>
      */
     public function getEnabledDownloaders(): iterable
     {
@@ -35,7 +36,7 @@ class DownloaderFactory
         return $this->downloaders;
     }
 
-    public function getDownloaderByIdentifier(string $identifier): ?\App\Service\Downloader\DownloaderInterface
+    public function getDownloaderByIdentifier(string $identifier): ?DownloaderInterface
     {
         return $this->downloaders[$identifier] ?? null;
     }
@@ -47,7 +48,7 @@ class DownloaderFactory
 
     /**
      * @param UriInterface $uri
-     * @return iterable<\App\Service\Downloader\DownloaderInterface>
+     * @return iterable<DownloaderInterface>
      */
     public function getDownloadersByUri(UriInterface $uri): iterable
     {
@@ -57,7 +58,7 @@ class DownloaderFactory
                 'downloader' => $downloader->getIdentifier(),
                 'uri' => $uri
             ]);
-            /** @var \App\Service\Downloader\DownloaderInterface $downloader */
+            /** @var DownloaderInterface $downloader */
             if ($downloader->supportsUri($uri)) {
                 yield $downloader;
             }

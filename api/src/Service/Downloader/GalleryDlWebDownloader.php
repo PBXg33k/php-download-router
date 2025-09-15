@@ -6,14 +6,15 @@ use App\Enum\DownloaderTypeEnum;
 use App\Model\DownloadJobInterface;
 use Psr\Http\Message\UriInterface;
 use Psr\Log\LoggerInterface;
+use RuntimeException;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class GalleryDlWebDownloader implements DownloaderInterface
 {
     public function __construct(
-        protected LoggerInterface $logger,
+        protected LoggerInterface     $logger,
         protected HttpClientInterface $httpClient,
-        protected string $hostUrl = 'http://gallery-dl:9080',
+        protected string              $hostUrl = 'http://gallery-dl:9080',
     )
     {
     }
@@ -35,7 +36,7 @@ class GalleryDlWebDownloader implements DownloaderInterface
                 'status_code' => $response->getStatusCode(),
                 'response' => $response->getContent(false),
             ]);
-            throw new \RuntimeException('Failed to send URL to gallery-dl web server');
+            throw new RuntimeException('Failed to send URL to gallery-dl web server');
         }
 
         $this->logger->info('Successfully sent URL to gallery-dl web server', ['url' => (string)$uri]);
@@ -53,7 +54,7 @@ class GalleryDlWebDownloader implements DownloaderInterface
                 'status_code' => $response->getStatusCode(),
                 'response' => $response->getContent(false),
             ]);
-            throw new \RuntimeException('Failed to fetch log from gallery-dl web server');
+            throw new RuntimeException('Failed to fetch log from gallery-dl web server');
         }
 
         $this->logger->info('Successfully fetched log from gallery-dl web server');
@@ -63,6 +64,16 @@ class GalleryDlWebDownloader implements DownloaderInterface
     public function getDownloaderType(): DownloaderTypeEnum
     {
         return DownloaderTypeEnum::WEB_DOWNLOADER;
+    }
+
+    public function supportsUri(UriInterface $uri): bool
+    {
+        foreach ($this->getSupportedDomains() as $domain) {
+            if (str_contains($uri->getHost(), parse_url($domain, PHP_URL_HOST))) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public function getSupportedDomains(): array
@@ -391,16 +402,6 @@ class GalleryDlWebDownloader implements DownloaderInterface
             "https://yande.re/",
             "https://yiffverse.com/",
         ];
-    }
-
-    public function supportsUri(UriInterface $uri): bool
-    {
-        foreach ($this->getSupportedDomains() as $domain) {
-            if (str_contains($uri->getHost(), parse_url($domain, PHP_URL_HOST))) {
-                return true;
-            }
-        }
-        return false;
     }
 
     public function getIdentifier(): string

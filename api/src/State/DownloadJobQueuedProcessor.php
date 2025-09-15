@@ -5,15 +5,16 @@ namespace App\State;
 use ApiPlatform\Doctrine\Common\State\PersistProcessor;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
+use ApiPlatform\Symfony\Messenger\Processor as MessengerProcessor;
 use App\Dto\DownloadJobDTO;
 use App\Entity\DownloadJob;
 use App\Enum\DownloadStateEnum;
 use App\Factory\DownloaderFactory;
+use Exception;
 use GuzzleHttp\Psr7\Uri;
-use Psr\Cache\CacheItemPoolInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\Exception\BadRequestException;
-use ApiPlatform\Symfony\Messenger\Processor as MessengerProcessor;
+use Symfony\Component\Serializer\Exception\ExceptionInterface;
 use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
@@ -25,9 +26,9 @@ class DownloadJobQueuedProcessor implements ProcessorInterface
          * @var PersistProcessor $persistProcessor
          */
         #[Autowire(service: 'api_platform.doctrine.orm.state.persist_processor')]
-        private ProcessorInterface $persistProcessor,
-        private MessengerProcessor $messengerProcessor,
-        private DownloaderFactory $downloaderFactory,
+        private ProcessorInterface     $persistProcessor,
+        private MessengerProcessor     $messengerProcessor,
+        private DownloaderFactory      $downloaderFactory,
         private TagAwareCacheInterface $cache
     )
     {
@@ -39,7 +40,7 @@ class DownloadJobQueuedProcessor implements ProcessorInterface
      * @param array $uriVariables
      * @param array $context
      * @return void
-     * @throws \Symfony\Component\Serializer\Exception\ExceptionInterface
+     * @throws ExceptionInterface
      */
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = [])
     {
@@ -99,16 +100,16 @@ class DownloadJobQueuedProcessor implements ProcessorInterface
         // Try converting the uri to a valid URI
         // If it fails, throw a 400 error
         try {
-            $uri = new \GuzzleHttp\Psr7\Uri($downloadJob->getUri());
-        } catch (\Exception $e) {
+            $uri = new Uri($downloadJob->getUri());
+        } catch (Exception $e) {
             throw new BadRequestException('Invalid URI');
         }
 
         // Persist the job as a queued job
-        $this->persistProcessor->process($downloadJob,$operation,$uriVariables,$context);
+        $this->persistProcessor->process($downloadJob, $operation, $uriVariables, $context);
 
         // Dispatch the job to the messenger queue
-        return $this->messengerProcessor->process($downloadJob,$operation,$uriVariables,$context);
+        return $this->messengerProcessor->process($downloadJob, $operation, $uriVariables, $context);
     }
 
     private function getDomainProbeCacheKey(DownloadJob $downloadJob): string

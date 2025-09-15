@@ -6,6 +6,8 @@ use App\Enum\DownloaderTypeEnum;
 use App\Model\DownloadJobInterface;
 use Psr\Http\Message\UriInterface;
 use Psr\Log\LoggerInterface;
+use RuntimeException;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\Process;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
@@ -14,13 +16,13 @@ class YoutubeDlCliDownloader implements DownloaderInterface
 {
     public function __construct(
         private TagAwareCacheInterface $cache,
-        #[\Symfony\Component\DependencyInjection\Attribute\Autowire(param: 'downloader.yt_dlp_cli.config_path')]
-        private string $configPath,
-        #[\Symfony\Component\DependencyInjection\Attribute\Autowire(param: 'downloader.yt_dlp_cli.binary_path')]
-        private string $binaryPath,
-        #[\Symfony\Component\DependencyInjection\Attribute\Autowire(param: 'downloader.yt_dlp_cli.downloads_dir')]
-        private string $downloadPath,
-        private LoggerInterface $logger
+        #[Autowire(param: 'downloader.yt_dlp_cli.config_path')]
+        private string                 $configPath,
+        #[Autowire(param: 'downloader.yt_dlp_cli.binary_path')]
+        private string                 $binaryPath,
+        #[Autowire(param: 'downloader.yt_dlp_cli.downloads_dir')]
+        private string                 $downloadPath,
+        private LoggerInterface        $logger
     )
     {
     }
@@ -52,7 +54,7 @@ class YoutubeDlCliDownloader implements DownloaderInterface
             $downloadJob->getUrl()->__toString()
         ], $this->downloadPath);
 
-        $downloadProcess->mustRun(function(string $type, string $buffer)  {
+        $downloadProcess->mustRun(function (string $type, string $buffer) {
             if (Process::ERR === $type) {
                 $this->logger->error('yt-dlp error output: ' . $buffer);
             } else {
@@ -60,47 +62,9 @@ class YoutubeDlCliDownloader implements DownloaderInterface
             }
         });
         if (!$downloadProcess->isSuccessful()) {
-            throw new \RuntimeException($downloadProcess->getErrorOutput());
+            throw new RuntimeException($downloadProcess->getErrorOutput());
         }
         return true;
-    }
-
-    public function getDownloaderType(): DownloaderTypeEnum
-    {
-        return DownloaderTypeEnum::CLI_DOWNLOADER;
-    }
-
-    public function getSupportedDomains(): array
-    {
-        return [];
-    }
-
-    public function supportsUri(UriInterface $uri): bool
-    {
-        // run yt-dlp --simulate {$uri} and check the exit code
-
-        $process = new Process([
-            $this->binaryPath,
-            '--simulate',
-            $uri->__toString()
-        ]);
-        try {
-            $process->mustRun();
-            $this->logger->debug('yt-dlp output', [
-                'output' => $process->getOutput(),
-                'errorOutput' => $process->getErrorOutput(),
-            ]);
-            return $process->isSuccessful();
-        } catch (ProcessFailedException $e) {
-            return false;
-        }
-    }
-
-    private function createDownloadDirectoryIfNotExists(): void
-    {
-        if (!is_dir($this->downloadPath)) {
-            mkdir($this->downloadPath, 0755, true);
-        }
     }
 
     private function createConfigFileIfNotExists(): void
@@ -156,6 +120,44 @@ class YoutubeDlCliDownloader implements DownloaderInterface
 EOF
 
             );
+        }
+    }
+
+    private function createDownloadDirectoryIfNotExists(): void
+    {
+        if (!is_dir($this->downloadPath)) {
+            mkdir($this->downloadPath, 0755, true);
+        }
+    }
+
+    public function getDownloaderType(): DownloaderTypeEnum
+    {
+        return DownloaderTypeEnum::CLI_DOWNLOADER;
+    }
+
+    public function getSupportedDomains(): array
+    {
+        return [];
+    }
+
+    public function supportsUri(UriInterface $uri): bool
+    {
+        // run yt-dlp --simulate {$uri} and check the exit code
+
+        $process = new Process([
+            $this->binaryPath,
+            '--simulate',
+            $uri->__toString()
+        ]);
+        try {
+            $process->mustRun();
+            $this->logger->debug('yt-dlp output', [
+                'output' => $process->getOutput(),
+                'errorOutput' => $process->getErrorOutput(),
+            ]);
+            return $process->isSuccessful();
+        } catch (ProcessFailedException $e) {
+            return false;
         }
     }
 }

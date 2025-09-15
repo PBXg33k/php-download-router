@@ -23,13 +23,12 @@ final class SelectDownloaderValidator extends ConstraintValidator
         }
 
         // Make sure the value is a valid downloader.
-        if($this->downloaderFactory->isValidDownloader($value)) {
+        if ($this->downloaderFactory->isValidDownloader($value)) {
             return;
         } else {
             $this->context->buildViolation($constraint->message)
                 ->setParameter('{{ value }}', $value)
-                ->addViolation()
-            ;
+                ->addViolation();
         }
     }
 }

@@ -6,6 +6,7 @@ use App\Enum\DownloaderTypeEnum;
 use App\Model\DownloadJobInterface;
 use Psr\Http\Message\UriInterface;
 use Psr\Log\LoggerInterface;
+use RuntimeException;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Process\Process;
 use Symfony\Contracts\Cache\ItemInterface;
@@ -16,12 +17,12 @@ class GalleryDlCliDownloader implements DownloaderInterface
     public function __construct(
         private TagAwareCacheInterface $cache,
         #[Autowire(param: 'downloader.gallery_dl_cli.config_path')]
-        private string $configPath,
+        private string                 $configPath,
         #[Autowire(param: 'downloader.gallery_dl_cli.binary_path')]
-        private string $binaryPath,
+        private string                 $binaryPath,
         #[Autowire(param: 'downloader.gallery_dl_cli.downloads_dir')]
-        private string $downloadPath,
-        private LoggerInterface $logger
+        private string                 $downloadPath,
+        private LoggerInterface        $logger
     )
     {
     }
@@ -48,7 +49,7 @@ class GalleryDlCliDownloader implements DownloaderInterface
             $downloadJob->getUrl()->__toString()
         ], $this->downloadPath);
 
-        $downloadProcess->mustRun(function(string $type, string $buffer)  {
+        $downloadProcess->mustRun(function (string $type, string $buffer) {
             if (Process::ERR === $type) {
                 $this->logger->error('gallery-dl error output: ' . $buffer);
             } else {
@@ -56,47 +57,10 @@ class GalleryDlCliDownloader implements DownloaderInterface
             }
         });
         if (!$downloadProcess->isSuccessful()) {
-            throw new \RuntimeException($downloadProcess->getErrorOutput());
+            throw new RuntimeException($downloadProcess->getErrorOutput());
         } else {
             return true;
         }
-    }
-
-    public function getDownloaderType(): DownloaderTypeEnum
-    {
-        return DownloaderTypeEnum::CLI_DOWNLOADER;
-    }
-
-    public function getSupportedDomains(): array
-    {
-        // Get the application version to set the cache key.
-        $versionProcess = new Process([$this->binaryPath, '--version']);
-        $versionProcess->mustRun();
-        if (!$versionProcess->isSuccessful()) {
-            throw new \RuntimeException($versionProcess->getErrorOutput());
-        }
-        $version = trim($versionProcess->getOutput());
-
-        return $this->cache->get('gallery_dl_cli_supported_domains_' . $version, function (ItemInterface $item) {
-            $item->tag([
-                'downloader_supported_domains',
-                'gallery_dl_cli_downloader',
-            ]);
-            // Cache for 24 hours
-            $item->expiresAfter(86400);
-            return $this->fetchSupportedDomains();
-        });
-    }
-
-    public function supportsUri(UriInterface $uri): bool
-    {
-        $supportedDomains = $this->getSupportedDomains();
-        return in_array($uri->getHost(), $supportedDomains, true);
-    }
-
-    public function getIdentifier(): string
-    {
-        return 'gallery-dl-cli';
     }
 
     private function createConfigFileIfNotExists(): void
@@ -110,7 +74,7 @@ class GalleryDlCliDownloader implements DownloaderInterface
             $process = new Process([$this->binaryPath, '--config-create']);
             $process->mustRun();
             if (!$process->isSuccessful()) {
-                throw new \RuntimeException($process->getErrorOutput());
+                throw new RuntimeException($process->getErrorOutput());
             }
             // Get the output file path from the command output.
             // Example output: "[config][info] Created a basic configuration file at '/etc/gallery-dl.conf'"
@@ -125,12 +89,12 @@ class GalleryDlCliDownloader implements DownloaderInterface
 
                 rename($matches[1], $this->configPath);
             } else {
-                $this->logger->error('Failed to find the created gallery-dl config file.',[
+                $this->logger->error('Failed to find the created gallery-dl config file.', [
                     'error_output' => $process->getErrorOutput(),
                     'output' => $output,
                     'matches' => $matches,
                 ]);
-                throw new \RuntimeException('Failed to create gallery-dl config file.');
+                throw new RuntimeException('Failed to create gallery-dl config file.');
             }
         }
     }
@@ -142,12 +106,44 @@ class GalleryDlCliDownloader implements DownloaderInterface
         }
     }
 
+    public function getDownloaderType(): DownloaderTypeEnum
+    {
+        return DownloaderTypeEnum::CLI_DOWNLOADER;
+    }
+
+    public function supportsUri(UriInterface $uri): bool
+    {
+        $supportedDomains = $this->getSupportedDomains();
+        return in_array($uri->getHost(), $supportedDomains, true);
+    }
+
+    public function getSupportedDomains(): array
+    {
+        // Get the application version to set the cache key.
+        $versionProcess = new Process([$this->binaryPath, '--version']);
+        $versionProcess->mustRun();
+        if (!$versionProcess->isSuccessful()) {
+            throw new RuntimeException($versionProcess->getErrorOutput());
+        }
+        $version = trim($versionProcess->getOutput());
+
+        return $this->cache->get('gallery_dl_cli_supported_domains_' . $version, function (ItemInterface $item) {
+            $item->tag([
+                'downloader_supported_domains',
+                'gallery_dl_cli_downloader',
+            ]);
+            // Cache for 24 hours
+            $item->expiresAfter(86400);
+            return $this->fetchSupportedDomains();
+        });
+    }
+
     private function fetchSupportedDomains(): array
     {
         $process = new Process([$this->binaryPath, '--list-extractors']);
         $process->mustRun();
         if (!$process->isSuccessful()) {
-            throw new \RuntimeException($process->getErrorOutput());
+            throw new RuntimeException($process->getErrorOutput());
         }
         $output = $process->getOutput();
         /**
@@ -173,5 +169,10 @@ class GalleryDlCliDownloader implements DownloaderInterface
         $domains = array_unique($domains);
         sort($domains);
         return $domains;
+    }
+
+    public function getIdentifier(): string
+    {
+        return 'gallery-dl-cli';
     }
 }

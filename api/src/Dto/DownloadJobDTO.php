@@ -2,9 +2,8 @@
 
 namespace App\Dto;
 
-use Symfony\Component\Validator\Constraints as Assert;
 use App\Validator as CustomAssert;
-use Psr\Http\Message\UriInterface;
+use Symfony\Component\Validator\Constraints as Assert;
 
 final class DownloadJobDTO
 {

@@ -2,8 +2,6 @@
 
 namespace App\Model;
 
-use Psr\Http\Message\UriInterface;
-
 /**
  * A download job for ingesting jobs send by the Metube browser extension.
  *

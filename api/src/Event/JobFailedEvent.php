@@ -4,6 +4,7 @@ namespace App\Event;
 
 use App\Entity\DownloadJob;
 use Symfony\Contracts\EventDispatcher\Event;
+use Throwable;
 
 /**
  * Event dispatched when a job fails during processing.
@@ -12,9 +13,10 @@ class JobFailedEvent extends Event
 {
     public function __construct(
         private DownloadJob $downloadJob,
-        private \Throwable $exception,
-        private ?array $context = null
-    ) {
+        private Throwable  $exception,
+        private ?array      $context = null
+    )
+    {
     }
 
     public function getDownloadJob(): DownloadJob
@@ -22,7 +24,7 @@ class JobFailedEvent extends Event
         return $this->downloadJob;
     }
 
-    public function getException(): \Throwable
+    public function getException(): Throwable
     {
         return $this->exception;
     }

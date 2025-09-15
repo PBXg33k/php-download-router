@@ -17,7 +17,8 @@ class JobEventSubscriber implements EventSubscriberInterface
 {
     public function __construct(
         private LoggerInterface $logger
-    ) {
+    )
+    {
     }
 
     public static function getSubscribedEvents()

@@ -12,9 +12,10 @@ class JobUpdateEvent extends Event
 {
     public function __construct(
         private DownloadJob $downloadJob,
-        private string $updateMessage,
-        private ?array $context = null
-    ) {
+        private string      $updateMessage,
+        private ?array      $context = null
+    )
+    {
     }
 
     public function getDownloadJob(): DownloadJob

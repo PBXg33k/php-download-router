@@ -12,8 +12,9 @@ class JobCompletedEvent extends Event
 {
     public function __construct(
         private DownloadJob $downloadJob,
-        private ?array $metadata = null
-    ) {
+        private ?array      $metadata = null
+    )
+    {
     }
 
     public function getDownloadJob(): DownloadJob

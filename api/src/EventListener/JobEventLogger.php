@@ -17,7 +17,8 @@ class JobEventLogger
 {
     public function __construct(
         private LoggerInterface $logger
-    ) {
+    )
+    {
     }
 
     #[AsEventListener(event: JobPickedUpEvent::class)]
