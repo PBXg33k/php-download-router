@@ -16,6 +16,7 @@ services:
       MERCURE_URL: ${CADDY_MERCURE_URL:-http://php/.well-known/mercure}
       MERCURE_PUBLIC_URL: ${CADDY_MERCURE_PUBLIC_URL:-https://${SERVER_NAME:-localhost}:${HTTPS_PORT:-443}/.well-known/mercure}
       MERCURE_JWT_SECRET: ${CADDY_MERCURE_JWT_SECRET:-!ChangeThisMercureHubJWTSecretKey!}
+      CORS_ALLOW_ORIGIN: ^(https?://(pwa|localhost|127\.0\.0\.1)(:[0-9]+)?|chrome-extension://fbmkmdnlhacefjljljlbhkodfmfkijdh|moz-extension://774f040e-d814-4323-902a-dc0d33480bf7)$
     volumes:
       - caddy_data:/data
       - caddy_config:/config
@@ -33,7 +34,7 @@ services:
       - target: 443
         published: ${HTTP3_PORT:-443}
         protocol: udp
-    command: wait-for-it rabbitmq:5672 --strict -- frankenphp run --config /etc/caddy/Caddyfile --watch
+    command: wait-for-it rabbitmq:5672 --strict -- frankenphp run --config /etc/frankenphp/Caddyfile --watch
     healthcheck:
       test: curl --insecure --fail https://localhost/docs || exit 1
       timeout: 5s
