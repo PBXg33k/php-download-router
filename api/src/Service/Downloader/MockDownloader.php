@@ -34,4 +34,9 @@ class MockDownloader implements DownloaderInterface
     {
         return ['example.com', 'test.com'];
     }
+
+    public function getVersion(): string
+    {
+        return '1.0.0-mock';
+    }
 }

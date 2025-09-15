@@ -39,4 +39,11 @@ interface DownloaderInterface
      * @return bool True if the URI is supported, false otherwise.
      */
     public function supportsUri(UriInterface $uri): bool;
+
+    /**
+     * Get the version of the downloader service.
+     *
+     * @return string Version string (e.g. "2024.06.1")
+     */
+    public function getVersion(): string;
 }
