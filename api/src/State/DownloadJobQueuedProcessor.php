@@ -42,7 +42,7 @@ class DownloadJobQueuedProcessor implements ProcessorInterface
      * @param array $uriVariables
      * @param array $context
      */
-    public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = [])
+    public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): JobAcceptedDTO
     {
         // Validate downloader
         if (isset($data->downloader) && !$this->downloaderFactory->isValidDownloader($data->downloader)) {
