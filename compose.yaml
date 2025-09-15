@@ -34,7 +34,7 @@ services:
       - target: 443
         published: ${HTTP3_PORT:-443}
         protocol: udp
-    command: wait-for-it rabbitmq:5672 --strict -- frankenphp run --config /etc/frankenphp/Caddyfile --watch
+    #command: composer install && wait-for-it rabbitmq:5672 --strict -- frankenphp run --config /etc/frankenphp/Caddyfile --watch
     healthcheck:
       test: curl --insecure --fail https://localhost/docs || exit 1
       timeout: 5s
