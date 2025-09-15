@@ -7,6 +7,7 @@ use App\Model\DownloadJobInterface;
 use Psr\Http\Message\UriInterface;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
+use Symfony\Component\DomCrawler\Crawler;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class GalleryDlWebDownloader implements DownloaderInterface
@@ -407,5 +408,25 @@ class GalleryDlWebDownloader implements DownloaderInterface
     public function getIdentifier(): string
     {
         return 'gallery-dl-web';
+    }
+
+    public function getVersion(): string
+    {
+        // Since gallery-dl-web does not provide an endpoint to get the version,
+        // we'll get the HTML body and extract it from there using symfony's DomCrawler
+        $response = $this->httpClient->request('GET', $this->hostUrl . '/gallery-dl');
+
+        $galleryDlWebVersionXPath = '//*[@id="header-right"]/text()[2]';
+        $galleryDLCliVersionXPath = '//footer/div/text()[2]';
+        $ytDlpVersionXPath = '//footer/div/text()[3]';
+
+        $html = $response->getContent();
+
+        $crawler = new Crawler($html);
+        $galleryDlWebVersion = trim($crawler->filterXPath($galleryDlWebVersionXPath)->text());
+        $galleryDlCliVersion = trim(trim($crawler->filterXPath($galleryDLCliVersionXPath)->text()), ' with');
+        $ytDlpVersion = trim($crawler->filterXPath($ytDlpVersionXPath)->text());
+
+        return "gallery-dl-web: $galleryDlWebVersion | gallery-dl-cli: $galleryDlCliVersion | yt-dlp: $ytDlpVersion";
     }
 }

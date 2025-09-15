@@ -175,4 +175,14 @@ class GalleryDlCliDownloader implements DownloaderInterface
     {
         return 'gallery-dl-cli';
     }
+
+    public function getVersion(): string
+    {
+        $process = new Process([$this->binaryPath, '--version']);
+        $process->mustRun();
+        if (!$process->isSuccessful()) {
+            throw new RuntimeException($process->getErrorOutput());
+        }
+        return trim($process->getOutput());
+    }
 }
