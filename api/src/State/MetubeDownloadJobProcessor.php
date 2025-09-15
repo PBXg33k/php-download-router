@@ -20,7 +20,6 @@ class MetubeDownloadJobProcessor implements ProcessorInterface
      * @param Operation $operation
      * @param array $uriVariables
      * @param array $context
-     * @return void
      */
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = [])
     {
@@ -29,6 +28,6 @@ class MetubeDownloadJobProcessor implements ProcessorInterface
         $downloadJobDTO->uri = $data->url;
 
         // Pass to DownloadJobQueuedProcessor
-        $this->downloadJobQueuedProcessor->process($downloadJobDTO, $operation, $uriVariables, $context);
+        return $this->downloadJobQueuedProcessor->process($downloadJobDTO, $operation, $uriVariables, $context);
     }
 }
