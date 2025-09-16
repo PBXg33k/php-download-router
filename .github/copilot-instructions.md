@@ -38,6 +38,9 @@ PHP Download Router is a Docker-based API Platform application that centralizes 
 # Full build from scratch (takes 5-10 minutes)
 IMAGES_PREFIX=local docker compose build --no-cache --pull
 
+# Alternative using Makefile
+make build
+
 # Known Issue: SSL certificate problems may occur during pip install of gallery-dl
 # Workaround: Retry the build command if it fails with SSL errors
 ```
@@ -123,33 +126,39 @@ make build
 /
 ├── api/                    # Symfony API Platform application
 │   ├── src/
+│   │   ├── Command/        # Console commands
+│   │   ├── Controller/     # API controllers (mostly API Platform auto-generated
+│   │   ├── Dto/            # Data transfer objects
 │   │   ├── Entity/         # Doctrine entities (DownloadJob, Downloader, SupportedSite)
+│   │   ├── Enum/           # PHP enumerations
+│   │   ├── Event/          # Symfony events
+│   │   ├── EventListener/  # Event listeners/subscribers
+│   │   ├── Factory/        # Object factories
+│   │   ├── Handler/        # Message handlers for async processing
+│   │   ├── Model/          # Domain models/interfaces
+│   │   ├── Repository/     # Database repositories
 │   │   ├── Service/        # Business logic & downloader implementations
 │   │   │   └── Downloader/ # YoutubeDl, GalleryDl, Mock downloaders
-│   │   ├── Handler/        # Message handlers for async processing
 │   │   ├── State/          # API Platform state processors
-│   │   ├── Repository/     # Database repositories
-│   │   ├── Dto/           # Data transfer objects
-│   │   ├── Enum/          # Enumerations (DownloadState, DownloaderType)
-│   │   └── Validator/     # Custom validation logic
-│   ├── config/            # Symfony configuration
-│   ├── tests/             # PHPUnit tests
-│   ├── migrations/        # Doctrine migrations
-│   ├── composer.json      # PHP dependencies
-│   └── phpunit.xml.dist   # PHPUnit configuration
-├── pwa/                   # Next.js frontend
-│   ├── pages/            # Next.js pages
-│   ├── components/       # React components
-│   ├── package.json      # Node.js dependencies
-│   └── tsconfig.json     # TypeScript configuration
-├── e2e/                  # Playwright end-to-end tests
-├── helm/                 # Kubernetes deployment charts
+│   │   └── Validator/      # Custom validation logic
+│   ├── config/             # Symfony configuration
+│   ├── tests/              # PHPUnit tests
+│   ├── migrations/         # Doctrine migrations
+│   ├── composer.json       # PHP dependencies
+│   └── phpunit.xml.dist    # PHPUnit configuration
+├── pwa/                    # Next.js frontend
+│   ├── pages/              # Next.js pages
+│   ├── components/         # React components
+│   ├── package.json        # Node.js dependencies
+│   └── tsconfig.json       # TypeScript configuration
+├── e2e/                    # Playwright end-to-end tests
+├── helm/                   # Kubernetes deployment charts
 ├── .github/
-│   └── workflows/        # CI/CD pipelines
-├── compose.yaml          # Production Docker Compose
-├── compose.override.yaml # Development overrides
-├── Makefile             # Build shortcuts
-└── update-deps.sh       # Dependency update script
+│   └── workflows/          # CI/CD pipelines
+├── compose.yaml            # Production Docker Compose
+├── compose.override.yaml   # Development overrides
+├── Makefile                # Build shortcuts
+└── update-deps.sh          # Dependency update script
 ```
 
 ### Key Configuration Files
@@ -190,11 +199,13 @@ docker compose exec -T php bin/console -e test doctrine:schema:validate
 ### File System Layout
 ```
 api/src/
-├── Command/           # Console commands
-├── Controller/        # API controllers (minimal - mostly API Platform)
+├── Command/          # Console commands
+├── Controller/       # API controllers (minimal - mostly API Platform)
 ├── Dto/              # Data transfer objects
 ├── Entity/           # Doctrine entities
 ├── Enum/             # PHP enumerations
+├── Event/            # Symfony events
+├── EventListener/    # Event listeners/subscribers
 ├── Factory/          # Object factories
 ├── Handler/          # Message handlers
 ├── Model/            # Domain models/interfaces
