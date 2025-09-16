@@ -3,11 +3,11 @@ const { test, expect } = require('@playwright/test');
 
 test('homepage', async ({ page }) => {
   await page.goto('https://localhost/');
-  await expect(page).toHaveTitle('Download Router - API Platform');
+  await expect(page).toHaveTitle('Welcome to API Platform');
 });
 
 test('swagger', async ({ page }) => {
   await page.goto('https://localhost/docs');
   await expect(page).toHaveTitle('Download Router - API Platform');
-  await expect(page.locator('.operation-tag-content > span')).toHaveCount(5);
+  await expect(page.locator('.operation-tag-content > span')).toHaveCount(8);
 });
