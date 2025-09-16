@@ -49,6 +49,11 @@ class GalleryDlCliDownloader implements DownloaderInterface
             $downloadJob->getUrl()->__toString()
         ], $this->downloadPath);
 
+        // Set a timeout of 30 minutes
+        $downloadProcess->setTimeout(1800);
+        // Set an idle timeout of 5 minutes
+        $downloadProcess->setIdleTimeout(300);
+
         $downloadProcess->mustRun(function (string $type, string $buffer) {
             if (Process::ERR === $type) {
                 $this->logger->error('gallery-dl error output: ' . $buffer);
