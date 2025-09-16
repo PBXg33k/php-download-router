@@ -1,5 +1,5 @@
 # Makefile
-DOCKER_COMPOSE_PREFIX ?= IMAGES_PREFIX=local
+DOCKER_COMPOSE_PREFIX ?= IMAGES_PREFIX=ghcr.io/pbxg33k/php-download-router
 ENV ?=
 
 up:
@@ -35,4 +35,4 @@ integration:
 Arguments := $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
 
 php:
-	$(DOCKER_COMPOSE_PREFIX) docker compose exec -it php $(Arguments)
+	$(DOCKER_COMPOSE_PREFIX) docker compose run --entrypoint="" --rm -it php $(Arguments)
