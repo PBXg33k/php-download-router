@@ -13,6 +13,7 @@ use App\Handler\DownloadJobHandler;
 use App\Repository\DownloadJobRepository;
 use App\Service\Downloader\DownloaderInterface;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\EntityNotFoundException;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcher;
@@ -132,10 +133,11 @@ class DownloadJobHandlerTest extends TestCase
     {
         $downloadJob = new DownloadJob();
 
-        $this->downloadJobRepository->method('find')
+        $this->downloadJobRepository->expects($this->once())
+            ->method('find')
             ->willReturn(null);
 
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(EntityNotFoundException::class);
         $this->expectExceptionMessage('DownloadJob not found with ID:');
 
         $this->handler->__invoke($downloadJob);
