@@ -100,10 +100,12 @@ class DownloadJobHandler
 
             throw $e; // Re-throw to ensure the message is not lost
         } catch (Throwable $exception) {
-            // Update job state to failed
-            $downloadJobEntity->setState(DownloadStateEnum::FAILED);
-            $this->entityManager->persist($downloadJobEntity);
-            $this->entityManager->flush();
+            if($downloadJobEntity) {
+                // Update job state to failed
+                $downloadJobEntity->setState(DownloadStateEnum::FAILED);
+                $this->entityManager->persist($downloadJobEntity);
+                $this->entityManager->flush();
+            }
 
             // Dispatch job failed event
             $this->eventDispatcher->dispatch(new JobFailedEvent($downloadJobEntity, $exception));
