@@ -9,7 +9,6 @@ use App\Model\MetubeDownloadJob;
 use App\State\DownloadJobQueuedProcessor;
 use App\State\MetubeDownloadJobProcessor;
 use PHPUnit\Framework\TestCase;
-use Symfony\Component\Uid\Uuid;
 
 class MetubeDownloadJobProcessorTest extends TestCase
 {
@@ -30,7 +29,7 @@ class MetubeDownloadJobProcessorTest extends TestCase
         $metubeJob = new MetubeDownloadJob();
         $metubeJob->url = 'https://youtube.com/watch?v=test123';
 
-        $expectedUuid = Uuid::v4();
+        $expectedUuid = '6ba7b810-9dad-11d1-80b4-00c04fd430c8';
         $expectedToken = 'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890';
         $expectedResult = new JobAcceptedDTO();
         $expectedResult->setJobUuid($expectedUuid);
@@ -65,7 +64,7 @@ class MetubeDownloadJobProcessorTest extends TestCase
         $uriVariables = ['id' => 123];
         $context = ['operation' => 'create'];
         
-        $expectedUuid = Uuid::v4();
+        $expectedUuid = '6ba7b810-9dad-11d1-80b4-00c04fd430c9';
         $expectedToken = 'fedcba0987654321fedcba0987654321fedcba0987654321fedcba0987654321';
         $expectedResult = new JobAcceptedDTO();
         $expectedResult->setJobUuid($expectedUuid);
@@ -102,7 +101,7 @@ class MetubeDownloadJobProcessorTest extends TestCase
             $metubeJob = new MetubeDownloadJob();
             $metubeJob->url = $url;
 
-            $expectedUuid = Uuid::v4();
+            $expectedUuid = '6ba7b810-9dad-11d1-80b4-00c04fd430c' . $index;
             $expectedToken = bin2hex(random_bytes(32));
             $expectedResult = new JobAcceptedDTO();
             $expectedResult->setJobUuid($expectedUuid);
@@ -156,7 +155,7 @@ class MetubeDownloadJobProcessorTest extends TestCase
                 $capturedDTO = $dto;
                 
                 $result = new JobAcceptedDTO();
-                $result->setJobUuid(Uuid::v4());
+                $result->setJobUuid('6ba7b810-9dad-11d1-80b4-00c04fd430dd');
                 $result->setToken(bin2hex(random_bytes(32)));
                 $result->setJobType(JobTypeEnum::DOWNLOAD);
                 return $result;

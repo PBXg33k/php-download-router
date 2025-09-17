@@ -5,7 +5,6 @@ namespace App\Tests\Unit\Dto;
 use App\Dto\JobAcceptedDTO;
 use App\Enum\JobTypeEnum;
 use PHPUnit\Framework\TestCase;
-use Symfony\Component\Uid\Uuid;
 
 class JobAcceptedDTOTest extends TestCase
 {
@@ -18,7 +17,7 @@ class JobAcceptedDTOTest extends TestCase
 
     public function testJobUuidGettersAndSetters(): void
     {
-        $uuid = Uuid::v4();
+        $uuid = '6ba7b810-9dad-11d1-80b4-00c04fd430c8';
         $result = $this->dto->setJobUuid($uuid);
         
         $this->assertSame($this->dto, $result);
@@ -64,7 +63,7 @@ class JobAcceptedDTOTest extends TestCase
 
     public function testFluentInterface(): void
     {
-        $uuid = Uuid::v4();
+        $uuid = '6ba7b810-9dad-11d1-80b4-00c04fd430c8';
         $token = 'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890';
         
         $result = $this->dto
@@ -80,7 +79,7 @@ class JobAcceptedDTOTest extends TestCase
 
     public function testSetJobUuidWithMinimalValue(): void
     {
-        $uuid = Uuid::fromString('00000000-0000-0000-0000-000000000000');
+        $uuid = '00000000-0000-0000-0000-000000000000';
         $this->dto->setJobUuid($uuid);
         $this->assertSame($uuid, $this->dto->getJobUuid());
     }
@@ -109,7 +108,7 @@ class JobAcceptedDTOTest extends TestCase
     public function testCompleteWorkflow(): void
     {
         $dto = new JobAcceptedDTO();
-        $uuid = Uuid::v4();
+        $uuid = '6ba7b810-9dad-11d1-80b4-00c04fd430c8';
         $token = 'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890';
         
         // Simulate typical usage

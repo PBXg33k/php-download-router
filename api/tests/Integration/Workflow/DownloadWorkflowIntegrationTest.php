@@ -112,7 +112,8 @@ class DownloadWorkflowIntegrationTest extends TestCase
         $result = $processor->process($dto, $operation);
 
         // Verify DTO processing
-        $this->assertInstanceOf(\Symfony\Component\Uid\Uuid::class, $result->getJobUuid());
+        $this->assertIsString($result->getJobUuid());
+        $this->assertMatchesRegularExpression('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/', $result->getJobUuid());
         $this->assertIsString($result->getToken());
         $this->assertSame(64, strlen($result->getToken()));
         $this->assertNotNull($persistedJob);
@@ -181,7 +182,8 @@ class DownloadWorkflowIntegrationTest extends TestCase
         $result = $processor->process($dto, $operation);
 
         // Verify auto-selection worked
-        $this->assertInstanceOf(\Symfony\Component\Uid\Uuid::class, $result->getJobUuid());
+        $this->assertIsString($result->getJobUuid());
+        $this->assertMatchesRegularExpression('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/', $result->getJobUuid());
         $this->assertIsString($result->getToken());
         $this->assertSame(64, strlen($result->getToken()));
         $this->assertSame('mock', $persistedJob->getDownloader());

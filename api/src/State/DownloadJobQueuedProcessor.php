@@ -112,7 +112,7 @@ class DownloadJobQueuedProcessor implements ProcessorInterface
 
         // Return a JobAcceptedDTO with the job UUID and token
         return new JobAcceptedDTO()
-            ->setJobUuid($downloadJob->getUuid())
+            ->setJobUuid($downloadJob->getUuid()->toRfc4122())
             ->setToken($downloadJob->getToken())
             ->setJobType(JobTypeEnum::DOWNLOAD);
 
