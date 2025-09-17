@@ -5,6 +5,7 @@ namespace App\Tests\Unit\Dto;
 use App\Dto\JobAcceptedDTO;
 use App\Enum\JobTypeEnum;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Uid\Uuid;
 
 class JobAcceptedDTOTest extends TestCase
 {
@@ -15,12 +16,22 @@ class JobAcceptedDTOTest extends TestCase
         $this->dto = new JobAcceptedDTO();
     }
 
-    public function testJobIdGettersAndSetters(): void
+    public function testJobUuidGettersAndSetters(): void
     {
-        $result = $this->dto->setJobId(123);
+        $uuid = Uuid::v4();
+        $result = $this->dto->setJobUuid($uuid);
         
         $this->assertSame($this->dto, $result);
-        $this->assertSame(123, $this->dto->getJobId());
+        $this->assertSame($uuid, $this->dto->getJobUuid());
+    }
+
+    public function testTokenGettersAndSetters(): void
+    {
+        $token = 'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890';
+        $result = $this->dto->setToken($token);
+        
+        $this->assertSame($this->dto, $result);
+        $this->assertSame($token, $this->dto->getToken());
     }
 
     public function testJobTypeGettersAndSetters(): void
@@ -53,32 +64,38 @@ class JobAcceptedDTOTest extends TestCase
 
     public function testFluentInterface(): void
     {
+        $uuid = Uuid::v4();
+        $token = 'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890';
+        
         $result = $this->dto
-            ->setJobId(456)
+            ->setJobUuid($uuid)
+            ->setToken($token)
             ->setJobType(JobTypeEnum::DOWNLOAD);
         
         $this->assertSame($this->dto, $result);
-        $this->assertSame(456, $this->dto->getJobId());
+        $this->assertSame($uuid, $this->dto->getJobUuid());
+        $this->assertSame($token, $this->dto->getToken());
         $this->assertSame(JobTypeEnum::DOWNLOAD, $this->dto->getJobType());
     }
 
-    public function testSetJobIdWithZero(): void
+    public function testSetJobUuidWithMinimalValue(): void
     {
-        $this->dto->setJobId(0);
-        $this->assertSame(0, $this->dto->getJobId());
+        $uuid = Uuid::fromString('00000000-0000-0000-0000-000000000000');
+        $this->dto->setJobUuid($uuid);
+        $this->assertSame($uuid, $this->dto->getJobUuid());
     }
 
-    public function testSetJobIdWithNegativeValue(): void
+    public function testSetTokenWithShortValue(): void
     {
-        $this->dto->setJobId(-1);
-        $this->assertSame(-1, $this->dto->getJobId());
+        $this->dto->setToken('abc123');
+        $this->assertSame('abc123', $this->dto->getToken());
     }
 
-    public function testSetJobIdWithLargeValue(): void
+    public function testSetTokenWithLongValue(): void
     {
-        $largeId = PHP_INT_MAX;
-        $this->dto->setJobId($largeId);
-        $this->assertSame($largeId, $this->dto->getJobId());
+        $longToken = str_repeat('a', 64);
+        $this->dto->setToken($longToken);
+        $this->assertSame($longToken, $this->dto->getToken());
     }
 
     public function testInitialState(): void
@@ -92,13 +109,17 @@ class JobAcceptedDTOTest extends TestCase
     public function testCompleteWorkflow(): void
     {
         $dto = new JobAcceptedDTO();
+        $uuid = Uuid::v4();
+        $token = 'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890';
         
         // Simulate typical usage
-        $dto->setJobId(789)
+        $dto->setJobUuid($uuid)
+            ->setToken($token)
             ->setJobType(JobTypeEnum::DOWNLOAD);
         
         // Verify final state
-        $this->assertSame(789, $dto->getJobId());
+        $this->assertSame($uuid, $dto->getJobUuid());
+        $this->assertSame($token, $dto->getToken());
         $this->assertSame(JobTypeEnum::DOWNLOAD, $dto->getJobType());
         $this->assertSame('Download', $dto->getJobType()->label());
     }

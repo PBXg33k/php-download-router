@@ -3,10 +3,12 @@
 namespace App\Dto;
 
 use App\Enum\JobTypeEnum;
+use Symfony\Component\Uid\Uuid;
 
 class JobAcceptedDTO
 {
-    public int $jobId;
+    public Uuid $jobUuid;
+    public string $token;
     public JobTypeEnum $jobType;
     public string $status = 'Accepted';
     public string $message = 'Your job has been accepted and is being processed.';
@@ -22,14 +24,25 @@ class JobAcceptedDTO
         return $this;
     }
 
-    public function getJobId(): int
+    public function getJobUuid(): Uuid
     {
-        return $this->jobId;
+        return $this->jobUuid;
     }
 
-    public function setJobId(int $jobId): JobAcceptedDTO
+    public function setJobUuid(Uuid $jobUuid): JobAcceptedDTO
     {
-        $this->jobId = $jobId;
+        $this->jobUuid = $jobUuid;
+        return $this;
+    }
+
+    public function getToken(): string
+    {
+        return $this->token;
+    }
+
+    public function setToken(string $token): JobAcceptedDTO
+    {
+        $this->token = $token;
         return $this;
     }
 
