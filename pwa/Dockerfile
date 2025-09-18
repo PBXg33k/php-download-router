@@ -4,6 +4,9 @@
 # Versions
 FROM node:lts-alpine AS node_upstream
 
+RUN apk add --no-cache wget \
+    && wget --progress=dot:giga https://raw.githubusercontent.com/vishnubob/wait-for-it/81b1373f17855a4dc21156cfe1694c31d7d1792e/wait-for-it.sh -O /usr/local/bin/wait-for-it \
+	&& chmod +x /usr/local/bin/wait-for-it
 
 # Base stage for dev and build
 FROM node_upstream AS base
