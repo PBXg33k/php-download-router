@@ -13,7 +13,7 @@ FROM dunglas/frankenphp:1-php8.4-alpine AS frankenphp_upstream
 # https://docs.docker.com/compose/compose-file/#target
 
 ## Download the latest gallery-dl & yt-dlp binary from GitHub
-# hadolint ignore=DL3008,DL3013
+# hadolint ignore=DL3018,DL3013
 RUN apk add --no-cache \
     ca-certificates \
 	curl \
