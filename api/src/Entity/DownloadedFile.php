@@ -19,7 +19,7 @@ class DownloadedFile
     /**
      * @var Collection<int, DownloadJob>
      */
-    #[ORM\ManyToMany(targetEntity: DownloadJob::class, inversedBy: 'downloadedFiles')]
+    #[ORM\ManyToMany(targetEntity: DownloadJob::class, inversedBy: 'files')]
     private Collection $downloadJob;
 
     #[ORM\Column(type: Types::TEXT)]
