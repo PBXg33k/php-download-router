@@ -43,10 +43,6 @@ RUN apk add --no-cache \
     icu-dev \
     libgcrypt-dev
 
-#	libcurl4-openssl-dev \
-#	libbrotli-dev \
-#	libicu-dev \
-#	libgcrypt20-dev
 
 # https://getcomposer.org/doc/03-cli.md#composer-allow-superuser
 ENV COMPOSER_ALLOW_SUPERUSER=1
