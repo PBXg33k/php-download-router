@@ -2,7 +2,7 @@
 
 
 # Versions
-FROM node:lts AS node_upstream
+FROM node:lts-alpine AS node_upstream
 
 
 # Base stage for dev and build
