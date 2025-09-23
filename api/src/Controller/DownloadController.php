@@ -3,8 +3,6 @@
 namespace App\Controller;
 
 use App\Entity\DownloadedFile;
-use App\Entity\DownloadJob;
-use App\Repository\DownloadedFileRepository;
 use App\Repository\DownloadJobRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -15,8 +13,7 @@ use Symfony\Component\Routing\Attribute\Route;
 final class DownloadController extends AbstractController
 {
     public function __construct(
-        private DownloadJobRepository $downloadJobRepository,
-        private DownloadedFileRepository $downloadedFileRepository
+        private readonly DownloadJobRepository $downloadJobRepository
     )
     {
     }
@@ -64,6 +61,14 @@ final class DownloadController extends AbstractController
                 $filename = basename($file->getPath() ?: 'downloaded_file');
                 break;
         }
+
+        // By this point we're ready to serve the file
+        // For slow clients, this might take a while
+        // So we increase the time limit for this script
+        // Note: This is not ideal for very large files or high traffic
+        // but should be fine for most use cases
+        // For now let's set it to 3 hours
+        set_time_limit(10800); // 3 hours
 
         return $this->file(
             file: $file->getPath(),
