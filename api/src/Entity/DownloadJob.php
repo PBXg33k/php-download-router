@@ -4,6 +4,8 @@ namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Post;
 use App\Dto\DownloadJobDTO;
 use App\Dto\JobAcceptedDTO;
@@ -43,6 +45,12 @@ use Symfony\Component\Uid\Uuid;
             output: JobAcceptedDTO::class,
             messenger: 'input',
             processor: MetubeDownloadJobProcessor::class
+        ),
+        new Get(
+            security: "is_granted('DOWNLOAD_JOB_VIEW') or is_granted('ROLE_ADMIN') or is_granted('ROLE_DOWNLOAD-API_ADMINS')",
+        ),
+        new GetCollection(
+            security: "is_granted('ROLE_ADMIN') or is_granted('ROLE_DOWNLOAD-API_ADMINS')"
         )
     ],
     mercure: true
