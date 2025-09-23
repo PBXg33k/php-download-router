@@ -12,11 +12,9 @@ use App\Entity\DownloadJob;
 use App\Enum\DownloadStateEnum;
 use App\Enum\JobTypeEnum;
 use App\Factory\DownloaderFactory;
-use Exception;
 use GuzzleHttp\Psr7\Uri;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\Exception\BadRequestException;
-use Symfony\Component\Serializer\Exception\ExceptionInterface;
 use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
