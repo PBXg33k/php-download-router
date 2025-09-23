@@ -18,7 +18,6 @@ use Gedmo\Timestampable\Traits\TimestampableEntity;
     operations: [new GetCollection()],
     uriVariables: [
         'downloadJobUuid' => new Link(
-            #fromProperty: 'downloadJobEvents',
             toProperty: 'downloadJob',
             fromClass: DownloadJob::class,
             identifiers: ['uuid'],
