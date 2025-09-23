@@ -42,6 +42,13 @@ readonly class JobEventLogger
         $this->storeDownloadJobEvent($jobEvent);
     }
 
+    private function storeDownloadJobEvent(DownloadJobEvent $jobEvent): void
+    {
+        $this->entityManager->persist($jobEvent->getDownloadJob());
+        $this->entityManager->persist($jobEvent);
+        $this->entityManager->flush();
+    }
+
     #[AsEventListener(event: JobUpdateEvent::class)]
     public function onJobUpdate(JobUpdateEvent $event): void
     {
@@ -106,12 +113,5 @@ readonly class JobEventLogger
         ]);
 
         $this->storeDownloadJobEvent($jobEvent);
-    }
-
-    private function storeDownloadJobEvent(DownloadJobEvent $jobEvent): void
-    {
-        $this->entityManager->persist($jobEvent->getDownloadJob());
-        $this->entityManager->persist($jobEvent);
-        $this->entityManager->flush();
     }
 }

@@ -27,7 +27,7 @@ final class DownloadController extends AbstractController
     public function index(
         string $downloadJobUuid,
         string $token,
-        int $fileId
+        int    $fileId
     ): JsonResponse|BinaryFileResponse
     {
         $downloadJob = $this->downloadJobRepository->findOneByUuidAndToken($downloadJobUuid, $token);
@@ -51,7 +51,7 @@ final class DownloadController extends AbstractController
         switch ($downloadJob->getDownloader()) {
             case 'yt-dlp-cli':
                 $metadata = $file->getMetadata();
-                $filename = $metadata['title'].'.'.$metadata['ext'] ?? basename($file->getPath() ?: 'downloaded_file');
+                $filename = $metadata['title'] . '.' . $metadata['ext'] ?? basename($file->getPath() ?: 'downloaded_file');
                 break;
             case 'gallery-dl-cli':
                 $metadata = $file->getMetadata();

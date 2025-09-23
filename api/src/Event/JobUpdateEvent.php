@@ -11,9 +11,9 @@ use Symfony\Contracts\EventDispatcher\Event;
 class JobUpdateEvent extends Event
 {
     public function __construct(
-        private DownloadJob $downloadJob,
-        private string      $updateMessage,
-        private ?array      $context = null
+        private readonly DownloadJob $downloadJob,
+        private readonly string      $updateMessage,
+        private ?array               $context = null
     )
     {
     }

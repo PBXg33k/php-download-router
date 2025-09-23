@@ -8,7 +8,7 @@ use App\Dto\DownloadJobDTO;
 use App\Dto\JobAcceptedDTO;
 use App\Model\MetubeDownloadJob;
 
-class MetubeDownloadJobProcessor implements ProcessorInterface
+readonly class MetubeDownloadJobProcessor implements ProcessorInterface
 {
     public function __construct(
         private DownloadJobQueuedProcessor $downloadJobQueuedProcessor,
@@ -21,6 +21,7 @@ class MetubeDownloadJobProcessor implements ProcessorInterface
      * @param Operation $operation
      * @param array $uriVariables
      * @param array $context
+     * @return JobAcceptedDTO
      */
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): JobAcceptedDTO
     {

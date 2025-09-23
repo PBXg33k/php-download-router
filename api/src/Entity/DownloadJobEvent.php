@@ -61,6 +61,14 @@ class DownloadJobEvent
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $exceptionMessage = null;
 
+    public static function handleLinks(QueryBuilder $queryBuilder, array $uriVariables, QueryNameGeneratorInterface $queryNameGenerator): void
+    {
+        $queryBuilder
+            ->join($queryBuilder->getRootAliases()[0] . '.downloadJob', 'download_job')
+            ->andWhere('download_job.uuid = :downloadJob')
+            ->setParameter('downloadJob', $uriVariables['downloadJobUuid']);
+    }
+
     public function getId(): ?int
     {
         return $this->id;
@@ -160,13 +168,5 @@ class DownloadJobEvent
         $this->exceptionMessage = $exceptionMessage;
 
         return $this;
-    }
-
-    public static function handleLinks(QueryBuilder $queryBuilder, array $uriVariables, QueryNameGeneratorInterface $queryNameGenerator): void
-    {
-        $queryBuilder
-            ->join($queryBuilder->getRootAliases()[0].'.downloadJob', 'download_job')
-            ->andWhere('download_job.uuid = :downloadJob')
-            ->setParameter('downloadJob', $uriVariables['downloadJobUuid']);
     }
 }

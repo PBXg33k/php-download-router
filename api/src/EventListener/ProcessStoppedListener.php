@@ -54,7 +54,7 @@ readonly class ProcessStoppedListener
                         'stdErr' => $event->process->getErrorOutput(),
                     ],
                 ]);
-                $this->entityManager->persist($jobEvent);
+            $this->entityManager->persist($jobEvent);
 
             // Update the job status based on the process result
             if ($event->wasSuccessful) {
@@ -72,21 +72,21 @@ readonly class ProcessStoppedListener
     {
         $downloadJob = $event->downloadJob;
 
-        if($downloadJob->getState() !== DownloadStateEnum::COMPLETED) {
+        if ($downloadJob->getState() !== DownloadStateEnum::COMPLETED) {
             return;
         }
 
-        if($downloadJob->getDownloader() === null) {
+        if ($downloadJob->getDownloader() === null) {
             $downloader = $this->downloaderFactory->getDownloadersByUri($downloadJob->getUrl());
         } else {
             $downloader = $this->downloaderFactory->getDownloaderByIdentifier($downloadJob->getDownloader());
         }
 
-        if($downloader === null) {
+        if ($downloader === null) {
             return;
         }
 
-        if($downloader instanceof AbstractCliDownloader) {
+        if ($downloader instanceof AbstractCliDownloader) {
             $downloader->addFilesToDownloadJobFromCommandOutput(
                 $downloadJob,
                 $event->process->getOutput()

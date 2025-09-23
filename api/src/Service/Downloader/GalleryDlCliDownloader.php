@@ -9,6 +9,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Http\Message\UriInterface;
 use Psr\Log\LoggerInterface;
+use RuntimeException;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Process\Process;
 use Symfony\Contracts\Cache\ItemInterface;
@@ -17,17 +18,17 @@ use Symfony\Contracts\Cache\TagAwareCacheInterface;
 class GalleryDlCliDownloader extends AbstractCliDownloader implements DownloaderInterface
 {
     public function __construct(
-        protected TagAwareCacheInterface $cache,
+        protected TagAwareCacheInterface   $cache,
         #[Autowire(param: 'downloader.gallery_dl_cli.config_path')]
-        protected string $configPath,
+        protected string                   $configPath,
         #[Autowire(param: 'downloader.gallery_dl_cli.binary_path')]
-        protected string $binaryPath,
+        protected string                   $binaryPath,
         #[Autowire(param: 'downloader.gallery_dl_cli.downloads_dir')]
-        protected string $downloadPath,
-        protected LoggerInterface $logger,
+        protected string                   $downloadPath,
+        protected LoggerInterface          $logger,
         protected EventDispatcherInterface $eventDispatcher,
         protected DownloadedFileRepository $downloadedFileRepository,
-        protected EntityManagerInterface $entityManager
+        protected EntityManagerInterface   $entityManager
     )
     {
         parent::__construct($cache, $eventDispatcher, $configPath, $binaryPath, $downloadPath, $logger);
@@ -38,11 +39,10 @@ class GalleryDlCliDownloader extends AbstractCliDownloader implements Downloader
         return 'gallery-dl-cli';
     }
 
-    protected function getConfigFileContents(): string
+    public function supportsUri(UriInterface $uri): bool
     {
-        // If you want to generate a default config, you can run the binary with --config-create and parse the output.
-        // For simplicity, return an empty config or a default template.
-        return "{}";
+        $supportedDomains = $this->getSupportedDomains();
+        return in_array($uri->getHost(), $supportedDomains, true);
     }
 
     public function getSupportedDomains(): array
@@ -63,7 +63,7 @@ class GalleryDlCliDownloader extends AbstractCliDownloader implements Downloader
         $process = new Process([$this->binaryPath, '--list-extractors']);
         $process->mustRun();
         if (!$process->isSuccessful()) {
-            throw new \RuntimeException($process->getErrorOutput());
+            throw new RuntimeException($process->getErrorOutput());
         }
         $output = $process->getOutput();
         $lines = explode("\n", $output);
@@ -81,13 +81,6 @@ class GalleryDlCliDownloader extends AbstractCliDownloader implements Downloader
         sort($domains);
         return $domains;
     }
-
-    public function supportsUri(UriInterface $uri): bool
-    {
-        $supportedDomains = $this->getSupportedDomains();
-        return in_array($uri->getHost(), $supportedDomains, true);
-    }
-
 
     public function addFilesToDownloadJobFromCommandOutput(DownloadJob $downloadJob, string $commandOutput): void
     {
@@ -131,5 +124,12 @@ class GalleryDlCliDownloader extends AbstractCliDownloader implements Downloader
                 $this->logger->warning("File listed in command output does not exist: " . $filePath);
             }
         }
+    }
+
+    protected function getConfigFileContents(): string
+    {
+        // If you want to generate a default config, you can run the binary with --config-create and parse the output.
+        // For simplicity, return an empty config or a default template.
+        return "{}";
     }
 }

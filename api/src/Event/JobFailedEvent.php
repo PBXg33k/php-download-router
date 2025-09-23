@@ -12,9 +12,9 @@ use Throwable;
 class JobFailedEvent extends Event
 {
     public function __construct(
-        private DownloadJob $downloadJob,
-        private Throwable  $exception,
-        private ?array      $context = null
+        private readonly DownloadJob $downloadJob,
+        private readonly Throwable   $exception,
+        private ?array               $context = null
     )
     {
     }

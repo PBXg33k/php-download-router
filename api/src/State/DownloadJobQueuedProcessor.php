@@ -19,7 +19,7 @@ use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 
-class DownloadJobQueuedProcessor implements ProcessorInterface
+readonly class DownloadJobQueuedProcessor implements ProcessorInterface
 {
     public function __construct(
         /**

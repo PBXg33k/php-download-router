@@ -10,7 +10,7 @@ use App\Enum\DownloaderTypeEnum;
 use App\Factory\DownloaderFactory;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
-class VersionProvider implements ProviderInterface
+readonly class VersionProvider implements ProviderInterface
 {
 
     public function __construct(

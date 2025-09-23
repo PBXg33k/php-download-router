@@ -11,8 +11,8 @@ use Symfony\Contracts\EventDispatcher\Event;
 class JobPickedUpEvent extends Event
 {
     public function __construct(
-        private DownloadJob $downloadJob,
-        private ?string     $workerIdentifier = null
+        private readonly DownloadJob $downloadJob,
+        private ?string              $workerIdentifier = null
     )
     {
     }

@@ -11,7 +11,8 @@ class CliProcessStdOutputEvent extends CliProcessOutputEvent
         string       $output,
         ?DownloadJob $downloadJob,
         Process      $process
-    ) {
+    )
+    {
         parent::__construct($output, $downloadJob, $process, false);
     }
 }

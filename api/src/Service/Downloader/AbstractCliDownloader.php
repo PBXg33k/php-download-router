@@ -21,15 +21,15 @@ abstract class AbstractCliDownloader implements DownloaderInterface
     protected const float IDLE_TIMEOUT = 300.0;
 
     public function __construct(
-        protected TagAwareCacheInterface $cache,
+        protected TagAwareCacheInterface   $cache,
         protected EventDispatcherInterface $eventDispatcher,
-        protected string $configPath,
-        protected string $binaryPath,
-        protected string $downloadPath,
-        protected LoggerInterface $logger
-    ) {}
-
-    abstract protected function getConfigFileContents(): string;
+        protected string                   $configPath,
+        protected string                   $binaryPath,
+        protected string                   $downloadPath,
+        protected LoggerInterface          $logger
+    )
+    {
+    }
 
     abstract public function addFilesToDownloadJobFromCommandOutput(DownloadJob $downloadJob, string $commandOutput): void;
 
@@ -83,10 +83,10 @@ abstract class AbstractCliDownloader implements DownloaderInterface
         $this->eventDispatcher->dispatch(new CliProcessStopEvent(
             downloadJob: $downloadJob,
             wasSuccessful: $downloadProcess->isSuccessful(),
-            errorOutput: $downloadProcess->isSuccessful() ? null : $downloadProcess->getErrorOutput(),
             process: $downloadProcess,
             exitCode: $downloadProcess->getExitCode(),
-            exitCodeText: $downloadProcess->getExitCodeText()
+            exitCodeText: $downloadProcess->getExitCodeText(),
+            errorOutput: $downloadProcess->isSuccessful() ? null : $downloadProcess->getErrorOutput()
         ));
 
         if (!$downloadProcess->isSuccessful()) {
@@ -108,6 +108,8 @@ abstract class AbstractCliDownloader implements DownloaderInterface
             file_put_contents($this->configPath, $this->getConfigFileContents());
         }
     }
+
+    abstract protected function getConfigFileContents(): string;
 
     protected function createDownloadDirectoryIfNotExists(): void
     {

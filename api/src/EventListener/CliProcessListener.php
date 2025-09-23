@@ -25,17 +25,7 @@ class CliProcessListener
             'is_error' => $event->isError,
             'job_id' => $event->downloadJob->getId(),
             'output' => $event->output,
-            ]);
-    }
-
-    #[AsEventListener(event: CliProcessErrOutputEvent::class)]
-    public function onCliProcessErrorOutputEvent(CliProcessErrOutputEvent $event): void
-    {
-        $this->sendToHub([
-            'is_error' => $event->isError,
-            'job_id' => $event->downloadJob->getId(),
-            'output' => $event->output,
-            ]);
+        ]);
     }
 
     private function sendToHub(array $data): void
@@ -47,5 +37,15 @@ class CliProcessListener
         );
 
         $this->hub->publish($update);
+    }
+
+    #[AsEventListener(event: CliProcessErrOutputEvent::class)]
+    public function onCliProcessErrorOutputEvent(CliProcessErrOutputEvent $event): void
+    {
+        $this->sendToHub([
+            'is_error' => $event->isError,
+            'job_id' => $event->downloadJob->getId(),
+            'output' => $event->output,
+        ]);
     }
 }

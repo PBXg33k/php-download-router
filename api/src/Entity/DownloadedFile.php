@@ -2,10 +2,8 @@
 
 namespace App\Entity;
 
-use ApiPlatform\Doctrine\Orm\Filter\BooleanFilter;
 use ApiPlatform\Doctrine\Orm\State\Options;
 use ApiPlatform\Doctrine\Orm\Util\QueryNameGeneratorInterface;
-use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Link;
@@ -64,17 +62,13 @@ class DownloadedFile
         $this->downloadJob = new ArrayCollection();
     }
 
-    public function getId(): ?int
+    public static function handleLinks(QueryBuilder $queryBuilder, array $uriVariables, QueryNameGeneratorInterface $queryNameGenerator): void
     {
-        return $this->id;
-    }
-
-    /**
-     * @return Collection<int, DownloadJob>
-     */
-    public function getDownloadJob(): Collection
-    {
-        return $this->downloadJob;
+        $queryBuilder
+            ->join($queryBuilder->getRootAliases()[0] . '.downloadJob', 'download_job')
+            ->andWhere('download_job.uuid = :downloadJob')
+            ->andWhere($queryBuilder->getRootAliases()[0] . '.visible = true')
+            ->setParameter('downloadJob', $uriVariables['downloadJobUuid']);
     }
 
     public function addDownloadJob(DownloadJob $downloadJob): static
@@ -139,15 +133,19 @@ class DownloadedFile
     public function getDownloadUri(): ?string
     {
         // /downloads/{downloadJobId}/files/{downloadedFileId}/{token}/download
-        return '/download/'.$this->getDownloadJob()->first()->getUuid().'/'. $this->getDownloadJob()->first()->getToken() .'/files/'.$this->getId();
+        return '/download/' . $this->getDownloadJob()->first()->getUuid() . '/' . $this->getDownloadJob()->first()->getToken() . '/files/' . $this->getId();
     }
 
-    public static function handleLinks(QueryBuilder $queryBuilder, array $uriVariables, QueryNameGeneratorInterface $queryNameGenerator): void
+    /**
+     * @return Collection<int, DownloadJob>
+     */
+    public function getDownloadJob(): Collection
     {
-        $queryBuilder
-            ->join($queryBuilder->getRootAliases()[0].'.downloadJob', 'download_job')
-            ->andWhere('download_job.uuid = :downloadJob')
-            ->andWhere($queryBuilder->getRootAliases()[0].'.visible = true')
-            ->setParameter('downloadJob', $uriVariables['downloadJobUuid']);
+        return $this->downloadJob;
+    }
+
+    public function getId(): ?int
+    {
+        return $this->id;
     }
 }
