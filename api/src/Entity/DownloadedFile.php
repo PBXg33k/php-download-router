@@ -2,12 +2,32 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Doctrine\Orm\State\Options;
+use ApiPlatform\Doctrine\Orm\Util\QueryNameGeneratorInterface;
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Link;
 use App\Repository\DownloadedFileRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\ORM\QueryBuilder;
 
+#[ApiResource(
+    uriTemplate: '/download_jobs/{downloadJobUuid}/files.{_format}',
+    operations: [new GetCollection()],
+    uriVariables: [
+        'downloadJobUuid' => new Link(
+            toProperty: 'downloadJob',
+            fromClass: DownloadJob::class,
+            identifiers: ['uuid'],
+        )
+    ],
+    stateOptions: new Options(
+        handleLinks: [self::class, 'handleLinks'],
+    )
+)]
 #[ORM\Entity(repositoryClass: DownloadedFileRepository::class)]
 class DownloadedFile
 {
@@ -99,5 +119,15 @@ class DownloadedFile
         $this->visible = $visible;
 
         return $this;
+    }
+
+
+
+    public static function handleLinks(QueryBuilder $queryBuilder, array $uriVariables, QueryNameGeneratorInterface $queryNameGenerator): void
+    {
+        $queryBuilder
+            ->join($queryBuilder->getRootAliases()[0].'.downloadJob', 'download_job')
+            ->andWhere('download_job.uuid = :downloadJob')
+            ->setParameter('downloadJob', $uriVariables['downloadJobUuid']);
     }
 }
