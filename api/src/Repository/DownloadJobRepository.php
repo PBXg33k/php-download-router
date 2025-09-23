@@ -24,6 +24,17 @@ class DownloadJobRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    public function findOneByUuidAndToken(string $uuid, string $token): ?DownloadJob
+    {
+        return $this->createQueryBuilder('d')
+            ->andWhere('d.uuid = :uuid')
+            ->andWhere('d.token = :token')
+            ->setParameter('uuid', $uuid)
+            ->setParameter('token', $token)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
 //    /**
 //     * @return DownloadJob[] Returns an array of DownloadJob objects
 //     */
