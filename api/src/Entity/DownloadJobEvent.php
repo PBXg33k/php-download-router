@@ -14,10 +14,10 @@ use Gedmo\Timestampable\Traits\TimestampableEntity;
 
 #[ORM\Entity(repositoryClass: DownloadJobEventRepository::class)]
 #[ApiResource(
-    uriTemplate: '/download_jobs/{downloadJobId}/events.{_format}',
+    uriTemplate: '/download_jobs/{downloadJobUuid}/events.{_format}',
     operations: [new GetCollection()],
     uriVariables: [
-        'downloadJobId' => new Link(
+        'downloadJobUuid' => new Link(
             #fromProperty: 'downloadJobEvents',
             toProperty: 'downloadJob',
             fromClass: DownloadJob::class,
@@ -168,6 +168,6 @@ class DownloadJobEvent
         $queryBuilder
             ->join($queryBuilder->getRootAliases()[0].'.downloadJob', 'download_job')
             ->andWhere('download_job.uuid = :downloadJob')
-            ->setParameter('downloadJob', $uriVariables['downloadJobId']);
+            ->setParameter('downloadJob', $uriVariables['downloadJobUuid']);
     }
 }
