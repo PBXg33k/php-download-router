@@ -114,6 +114,15 @@ EOF;
                         $metadataFilePath = preg_replace('/\.desktop$/', '.info.json', $filePath);
                         if (file_exists($metadataFilePath) && is_file($metadataFilePath)) {
                             $metadata = json_decode(file_get_contents($metadataFilePath), true);
+
+                            // Get the extension from the metadata if it exists
+                            $fileExt = $metadata['ext'] ?? null;
+                            if ($fileExt) {
+                                // Look for the file with the extension
+                                $actualFilePath = preg_replace('/\.desktop$/', '.' . $fileExt, $filePath);
+                                $this->addFileToDownloadJobFromCommandOutput($downloadJob, $actualFilePath);
+                            }
+
                             if (json_last_error() === JSON_ERROR_NONE) {
                                 $downloadedFile->setMetadata($metadata);
                             } else {
@@ -128,5 +137,30 @@ EOF;
         }
         $this->entityManager->persist($downloadJob);
         $this->entityManager->flush();
+    }
+
+    private function addFileToDownloadJobFromCommandOutput(DownloadJob $downloadJob, string $filePath): void
+    {
+        if (file_exists($filePath) && is_file($filePath)) {
+            $downloadedFile = $this->downloadedFileRepository->findOneBy(['path' => $filePath]);
+            if (!$downloadedFile) {
+                $downloadedFile = new \App\Entity\DownloadedFile();
+                $downloadedFile->setPath($filePath);
+                $downloadedFile->setVisible(true);
+                // Trim the file extension for the name and append .info.json
+                // That file contains all the metadat in a JSON format
+                $metadataFilePath = preg_replace('/\.[^.]+$/', '.info.json', $filePath);
+                if (file_exists($metadataFilePath) && is_file($metadataFilePath)) {
+                    $metadata = json_decode(file_get_contents($metadataFilePath), true);
+                    if (json_last_error() === JSON_ERROR_NONE) {
+                        $downloadedFile->setMetadata($metadata);
+                    } else {
+                        $downloadedFile->setMetadata([]);
+                    }
+                }
+            }
+            $downloadedFile->addDownloadJob($downloadJob);
+            $this->entityManager->persist($downloadedFile);
+        }
     }
 }

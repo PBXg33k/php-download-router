@@ -2,15 +2,41 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Doctrine\Orm\Filter\BooleanFilter;
+use ApiPlatform\Doctrine\Orm\State\Options;
+use ApiPlatform\Doctrine\Orm\Util\QueryNameGeneratorInterface;
+use ApiPlatform\Metadata\ApiFilter;
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Link;
 use App\Repository\DownloadedFileRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\ORM\QueryBuilder;
+use Symfony\Component\Serializer\Annotation\Groups;
 
+#[ApiResource(
+    uriTemplate: '/download_jobs/{downloadJobUuid}/files.{_format}',
+    operations: [new GetCollection(
+        normalizationContext: ['groups' => ['downloadedFile:read']]
+    )],
+    uriVariables: [
+        'downloadJobUuid' => new Link(
+            toProperty: 'downloadJob',
+            fromClass: DownloadJob::class,
+            identifiers: ['uuid'],
+        )
+    ],
+    stateOptions: new Options(
+        handleLinks: [self::class, 'handleLinks'],
+    )
+)]
 #[ORM\Entity(repositoryClass: DownloadedFileRepository::class)]
 class DownloadedFile
 {
+    #[Groups(['downloadedFile:read'])]
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -19,6 +45,7 @@ class DownloadedFile
     /**
      * @var Collection<int, DownloadJob>
      */
+    #[Groups(['downloadedFile:read'])]
     #[ORM\ManyToMany(targetEntity: DownloadJob::class, inversedBy: 'files')]
     private Collection $downloadJob;
 
@@ -28,6 +55,7 @@ class DownloadedFile
     #[ORM\Column]
     private array $metadata = [];
 
+    #[Groups(['downloadedFile:read'])]
     #[ORM\Column]
     private ?bool $visible = null;
 
@@ -99,5 +127,27 @@ class DownloadedFile
         $this->visible = $visible;
 
         return $this;
+    }
+
+    #[Groups(['downloadedFile:read'])]
+    public function getFilename(): ?string
+    {
+        return $this->path ? basename($this->path) : null;
+    }
+
+    #[Groups(['downloadedFile:read'])]
+    public function getDownloadUri(): ?string
+    {
+        // /downloads/{downloadJobId}/files/{downloadedFileId}/{token}/download
+        return '/downloads/'.$this->getDownloadJob()->first()->getUuid().'/'. $this->getDownloadJob()->first()->getToken() .'/files/'.$this->getId();
+    }
+
+    public static function handleLinks(QueryBuilder $queryBuilder, array $uriVariables, QueryNameGeneratorInterface $queryNameGenerator): void
+    {
+        $queryBuilder
+            ->join($queryBuilder->getRootAliases()[0].'.downloadJob', 'download_job')
+            ->andWhere('download_job.uuid = :downloadJob')
+            ->andWhere($queryBuilder->getRootAliases()[0].'.visible = true')
+            ->setParameter('downloadJob', $uriVariables['downloadJobUuid']);
     }
 }

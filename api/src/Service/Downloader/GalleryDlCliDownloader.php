@@ -107,6 +107,10 @@ class GalleryDlCliDownloader extends AbstractCliDownloader implements Downloader
             if (str_starts_with($line, './')) {
                 $line = substr($line, 2);
             }
+            // Remove leading "# ./" if present (some versions of gallery-dl do this)
+            if (str_starts_with($line, '# ./')) {
+                $line = substr($line, 4);
+            }
             $filePath = $this->downloadPath . '/' . ltrim($line, '/');
             if (file_exists($filePath) && is_file($filePath)) {
                 $downloadedFile = $this->downloadedFileRepository->findOneBy(['path' => $filePath]);
