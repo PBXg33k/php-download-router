@@ -20,6 +20,18 @@ parameters:
     downloader.yt_dlp_cli.downloads_dir: '%app.download_dir%'
     downloader.yt_dlp_cli.binary_path: 'yt-dlp'
     downloader.yt_dlp_cli.config_path: '%kernel.project_dir%/config/yt-dlp/yt-dlp.conf'
+    
+    oidc.enabled: '%env(bool:OIDC_ENABLED)%'
+    oidc.client_id: '%env(OIDC_CLIENT_ID)%'
+    oidc.client_secret: '%env(OIDC_CLIENT_SECRET)%'
+    oidc.well_known_url: '%env(OIDC_WELL_KNOWN_URL)%'
+    oidc.audience: '%env(OIDC_AUDIENCE)%'
+    oidc.token_url: '%env(OIDC_TOKEN_URL)%'
+    oidc.authorization_url: '%env(OIDC_AUTHORIZATION_URL)%'
+    oidc.issuer: '%env(OIDC_ISSUER)%'
+    oidc.discovery_base_uri: '%env(OIDC_DISCOVERY_BASE_URI)%'
+    fallback.claim: 'sub'
+    oidc.claim: '%env(default:fallback.claim:OIDC_CLAIM)%'
 
 services:
     # default configuration for services in *this* file
