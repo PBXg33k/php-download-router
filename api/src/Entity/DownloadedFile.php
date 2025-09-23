@@ -139,7 +139,7 @@ class DownloadedFile
     public function getDownloadUri(): ?string
     {
         // /downloads/{downloadJobId}/files/{downloadedFileId}/{token}/download
-        return '/downloads/'.$this->getDownloadJob()->first()->getUuid().'/'. $this->getDownloadJob()->first()->getToken() .'/files/'.$this->getId();
+        return '/download/'.$this->getDownloadJob()->first()->getUuid().'/'. $this->getDownloadJob()->first()->getToken() .'/files/'.$this->getId();
     }
 
     public static function handleLinks(QueryBuilder $queryBuilder, array $uriVariables, QueryNameGeneratorInterface $queryNameGenerator): void
