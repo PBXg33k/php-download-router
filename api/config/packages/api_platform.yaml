@@ -35,10 +35,4 @@ api_platform:
         authorizationUrl: '%oidc.authorization_url%'
 
         # The OAuth scopes.
-        scopes:
-            profile: "This scope value requests access to the End-User's default profile Claims, which are: name, family_name, given_name, middle_name, nickname, preferred_username, profile, picture, website, gender, birthdate, zoneinfo, locale, and updated_at."
-            email: "This scope value requests access to the email and email_verified Claims."
-            offline_access: "This scope value requests that the authorization server issue a refresh token that can be used to obtain new access tokens when the current access token becomes invalid or expires."
-            openid: "This scope value requests that the issued ID Token is a JSON Web Token (JWT)."
-            groups: "This scope value requests access to the groups Claims."
-
+        scopes: [ 'profile', 'email', 'offline_access', 'openid' ]
