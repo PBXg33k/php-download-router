@@ -37,9 +37,7 @@ class CoreDownloadersUpdateCommand extends Command
             $process = new Process(
                 $downloader->getUpdateCommandArgs()
             );
-
-
-
+            
             $process->run(function ($type, $buffer) use ($io) {
                 if (Process::ERR === $type) {
                     $io->error($buffer);
