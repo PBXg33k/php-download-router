@@ -50,9 +50,14 @@ jobs:
             pwa.cache-to=type=gha,scope=pwa-${{github.ref}},mode=max
       -
         name: Start services
+        id: start_services
         env:
           IMAGES_PREFIX: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}
         run: docker compose -f compose.yaml -f compose.override.yaml up --wait --no-build
+      -
+        name: Debug in case services do not start
+        if: failure() && steps.start_services.outcome == 'failure'
+        run: docker compose logs --no-color
       -
         name: Playwright
         run: docker run --network host -w /app -v ./e2e:/app --rm --ipc=host mcr.microsoft.com/playwright:v1.50.0-noble /bin/sh -c 'npm i; npx playwright test;'
