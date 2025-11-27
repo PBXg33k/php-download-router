@@ -159,7 +159,7 @@ abstract class AbstractCliDownloader implements DownloaderInterface
 
             $versions = [];
 
-            $process->mustRun(function(string $type, string $buffer) use (&$versions) {
+            $process->mustRun(function (string $type, string $buffer) use (&$versions) {
                 if (Process::OUT === $type) {
                     if (str_contains($buffer, 'INSTALLED')) {
                         $versions['installed'] = trim(str_replace('INSTALLED:', '', $buffer));
