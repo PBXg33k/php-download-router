@@ -4,7 +4,6 @@ namespace App\Service\Downloader;
 
 use App\Enum\DownloaderTypeEnum;
 use App\Model\DownloadJobInterface;
-use Deprecated;
 use Psr\Http\Message\UriInterface;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
