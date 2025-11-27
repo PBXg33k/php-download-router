@@ -2,8 +2,8 @@
 
 namespace App\Tests\Unit\State;
 
-use ApiPlatform\Metadata\Get;
-use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\CollectionOperationInterface;
+use ApiPlatform\Metadata\Operation;
 use App\Entity\Version;
 use App\Factory\DownloaderFactory;
 use App\Service\Downloader\DownloaderInterface;
@@ -37,7 +37,8 @@ class VersionProviderTest extends TestCase
             ->method('getEnabledDownloaders')
             ->willReturn([$mockDownloader1, $mockDownloader2]);
 
-        $operation = $this->createMock(GetCollection::class);
+        // Mock CollectionOperationInterface instead of final GetCollection class
+        $operation = $this->createMock(CollectionOperationInterface::class);
 
         $result = $this->provider->provide($operation);
 
@@ -69,7 +70,8 @@ class VersionProviderTest extends TestCase
             ->with('test-downloader')
             ->willReturn($mockDownloader);
 
-        $operation = $this->createMock(Get::class);
+        // Mock Operation interface instead of final Get class
+        $operation = $this->createMock(Operation::class);
 
         $result = $this->provider->provide($operation, ['id' => 'test-downloader']);
 
@@ -86,7 +88,8 @@ class VersionProviderTest extends TestCase
             ->with('unknown-downloader')
             ->willReturn(null);
 
-        $operation = $this->createMock(Get::class);
+        // Mock Operation interface instead of final Get class
+        $operation = $this->createMock(Operation::class);
 
         $result = $this->provider->provide($operation, ['id' => 'unknown-downloader']);
 
@@ -95,7 +98,8 @@ class VersionProviderTest extends TestCase
 
     public function testProvideWithoutIdReturnsNull(): void
     {
-        $operation = $this->createMock(Get::class);
+        // Mock Operation interface instead of final Get class
+        $operation = $this->createMock(Operation::class);
 
         $result = $this->provider->provide($operation);
 
@@ -108,7 +112,8 @@ class VersionProviderTest extends TestCase
             ->method('getEnabledDownloaders')
             ->willReturn([]);
 
-        $operation = $this->createMock(GetCollection::class);
+        // Mock CollectionOperationInterface instead of final GetCollection class
+        $operation = $this->createMock(CollectionOperationInterface::class);
 
         $result = $this->provider->provide($operation);
 
@@ -128,7 +133,8 @@ class VersionProviderTest extends TestCase
             ->with('up-to-date')
             ->willReturn($mockDownloader);
 
-        $operation = $this->createMock(Get::class);
+        // Mock Operation interface instead of final Get class
+        $operation = $this->createMock(Operation::class);
 
         $result = $this->provider->provide($operation, ['id' => 'up-to-date']);
 
