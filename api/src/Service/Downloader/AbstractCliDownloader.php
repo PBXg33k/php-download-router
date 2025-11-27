@@ -174,7 +174,10 @@ abstract class AbstractCliDownloader implements DownloaderInterface
             });
 
             if ($process->isSuccessful()) {
-                return $versions;
+                // Ensure both required keys are present
+                if (isset($versions['installed']) && isset($versions['latest'])) {
+                    return $versions;
+                }
             }
 
             return null;
