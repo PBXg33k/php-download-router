@@ -135,12 +135,20 @@ class GalleryDlCliDownloader extends AbstractCliDownloader implements CliDownloa
 
     public function getCurrentVersion(): string
     {
-        return $this->getVersionFromPip('gallery-dl')['installed'];
+        $versions = $this->getVersionFromPip('gallery-dl');
+        if ($versions === null) {
+            throw new RuntimeException('Unable to determine installed gallery-dl version');
+        }
+        return $versions['installed'];
     }
 
     public function getLatestVersion(): string
     {
-        return $this->getVersionFromPip('gallery-dl')['latest'];
+        $versions = $this->getVersionFromPip('gallery-dl');
+        if ($versions === null) {
+            throw new RuntimeException('Unable to determine latest gallery-dl version');
+        }
+        return $versions['latest'];
     }
 
     public function getUpdateCommandArgs(): array

@@ -141,11 +141,11 @@ abstract class AbstractCliDownloader implements DownloaderInterface
      * Uses the 'pip index versions' command and caches results for 1 hour.
      *
      * @param string $package The pip package name (e.g., 'yt-dlp', 'gallery-dl')
-     * @return array|null Array with 'installed' and 'latest' keys, or null on failure
+     * @return array{installed: string, latest: string}|null Array with 'installed' and 'latest' keys guaranteed, or null on failure
      */
     protected function getVersionFromPip(string $package): ?array
     {
-        return $this->cache->get("{$this->getIdentifier()}-version", function (ItemInterface $item) use ($package) {
+        return $this->cache->get("{$this->getIdentifier()}-{$package}-version", function (ItemInterface $item) use ($package) {
             $item->tag(['cli-version', $package]);
             $item->expiresAfter(new \DateInterval('PT1H'));
 

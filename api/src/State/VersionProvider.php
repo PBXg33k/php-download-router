@@ -12,7 +12,7 @@ class VersionProvider implements ProviderInterface
 {
 
     public function __construct(
-        private(set) DownloaderFactory $downloaderFactory,
+        private readonly DownloaderFactory $downloaderFactory,
     )
     {
     }
