@@ -14,7 +14,7 @@ use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\Process;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
-class YoutubeDlCliDownloader extends AbstractCliDownloader implements DownloaderInterface
+class YoutubeDlCliDownloader extends AbstractCliDownloader implements CliDownloaderInterface
 {
     public function __construct(
         protected TagAwareCacheInterface   $cache,
@@ -173,5 +173,10 @@ class YoutubeDlCliDownloader extends AbstractCliDownloader implements Downloader
 --convert-thumbnails jpg
 --abort-on-unavailable-fragment
 EOF;
+    }
+
+    public function getUpdateCommandArgs(): array
+    {
+        return $this->getPipUpdateCommandArgs('yt-dlp');
     }
 }

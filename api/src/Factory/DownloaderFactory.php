@@ -2,6 +2,8 @@
 
 namespace App\Factory;
 
+use App\Enum\DownloaderTypeEnum;
+use App\Service\Downloader\CliDownloaderInterface;
 use App\Service\Downloader\DownloaderInterface;
 use Psr\Http\Message\UriInterface;
 use Psr\Log\LoggerInterface;
@@ -34,6 +36,18 @@ class DownloaderFactory
     {
         // For now, all downloaders are considered enabled.
         return $this->downloaders;
+    }
+
+    /**
+     * @return iterable<CliDownloaderInterface>
+     */
+    public function getCliDownloaders(): iterable
+    {
+        foreach ($this->downloaders as $downloader) {
+            if ($downloader instanceof CliDownloaderInterface) {
+                yield $downloader;
+            }
+        }
     }
 
     public function getDownloaderByIdentifier(string $identifier): ?DownloaderInterface

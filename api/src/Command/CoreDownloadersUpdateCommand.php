@@ -40,7 +40,6 @@ class CoreDownloadersUpdateCommand extends Command
             '--upgrade',
             '--break-system-packages',
             'gallery-dl',
-            '--break-system-packages',
             '--root-user-action=ignore'
         ]);
 

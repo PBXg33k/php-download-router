@@ -11,6 +11,8 @@ if [ -z "$(ls -A 'vendor/' 2>/dev/null)" ]; then
 	composer install --prefer-dist --no-progress --no-interaction
 fi
 
+cron
+
 # Call the main entrypoint script with the bin/console command and the appropriate arguments
 # to run the Symfony Messenger worker
 # You can customize the arguments as needed

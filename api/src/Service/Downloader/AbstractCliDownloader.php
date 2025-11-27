@@ -170,4 +170,14 @@ abstract class AbstractCliDownloader implements DownloaderInterface
             return null;
         });
     }
+
+    protected function getPipUpdateCommandArgs(string $package): array
+    {
+        return [
+            'pip',
+            'install',
+            '--upgrade',
+            $package,
+        ];
+    }
 }

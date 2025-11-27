@@ -15,7 +15,7 @@ use Symfony\Component\Process\Process;
 use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
-class GalleryDlCliDownloader extends AbstractCliDownloader implements DownloaderInterface
+class GalleryDlCliDownloader extends AbstractCliDownloader implements CliDownloaderInterface
 {
     public function __construct(
         protected TagAwareCacheInterface   $cache,
@@ -141,5 +141,10 @@ class GalleryDlCliDownloader extends AbstractCliDownloader implements Downloader
     public function getLatestVersion(): string
     {
         return $this->getVersionFromPip('gallery-dl')['installed'];
+    }
+
+    public function getUpdateCommandArgs(): array
+    {
+        return $this->getPipUpdateCommandArgs('gallery-dl');
     }
 }

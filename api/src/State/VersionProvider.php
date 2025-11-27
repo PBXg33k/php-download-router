@@ -8,7 +8,7 @@ use ApiPlatform\State\ProviderInterface;
 use App\Entity\Version;
 use App\Factory\DownloaderFactory;
 
-readonly class VersionProvider implements ProviderInterface
+class VersionProvider implements ProviderInterface
 {
 
     public function __construct(
