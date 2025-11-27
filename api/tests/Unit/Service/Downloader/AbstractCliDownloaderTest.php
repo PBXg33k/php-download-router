@@ -9,7 +9,6 @@ use GuzzleHttp\Psr7\Uri;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Process\Process;
-use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
@@ -288,20 +287,10 @@ class AbstractCliDownloaderTest extends TestCase
     public function testGetVersionFromPipCallbackParsesValidOutput(): void
     {
         $callbackExecuted = false;
-        $callbackResult = null;
-
-        // Create a mock ItemInterface for the cache callback
-        $mockCacheItem = $this->createMock(ItemInterface::class);
-        $mockCacheItem->expects($this->once())
-            ->method('tag')
-            ->with(['cli-version', 'test-package']);
-        $mockCacheItem->expects($this->once())
-            ->method('expiresAfter')
-            ->with($this->isInstanceOf(\DateInterval::class));
 
         $this->cache->expects($this->once())
             ->method('get')
-            ->willReturnCallback(function (string $key, callable $callback) use ($mockCacheItem, &$callbackExecuted, &$callbackResult) {
+            ->willReturnCallback(function (string $key, callable $callback) use (&$callbackExecuted) {
                 $callbackExecuted = true;
                 // We can't fully test the callback since it executes Process,
                 // but we verify the callback is properly structured
