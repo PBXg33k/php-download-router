@@ -171,6 +171,12 @@ abstract class AbstractCliDownloader implements DownloaderInterface
         });
     }
 
+    /**
+     * Generate pip update command arguments for a package.
+     *
+     * @param string $package The pip package name to update.
+     * @return array Command arguments for Process: ['pip', 'install', '--upgrade', $package]
+     */
     protected function getPipUpdateCommandArgs(string $package): array
     {
         return [
