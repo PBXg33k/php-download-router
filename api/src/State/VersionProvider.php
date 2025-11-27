@@ -6,16 +6,13 @@ use ApiPlatform\Metadata\CollectionOperationInterface;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
 use App\Entity\Version;
-use App\Enum\DownloaderTypeEnum;
 use App\Factory\DownloaderFactory;
-use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 readonly class VersionProvider implements ProviderInterface
 {
 
     public function __construct(
         private(set) DownloaderFactory $downloaderFactory,
-        private TagAwareCacheInterface $cache,
     )
     {
     }
