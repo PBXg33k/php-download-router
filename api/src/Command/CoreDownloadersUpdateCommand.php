@@ -2,6 +2,7 @@
 
 namespace App\Command;
 
+use App\Factory\DownloaderFactory;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -17,7 +18,9 @@ use Symfony\Component\Process\Process;
 )]
 class CoreDownloadersUpdateCommand extends Command
 {
-    public function __construct()
+    public function __construct(
+        private DownloaderFactory $downloaderFactory,
+    )
     {
         parent::__construct();
     }
@@ -30,37 +33,29 @@ class CoreDownloadersUpdateCommand extends Command
     {
         $io = new SymfonyStyle($input, $output);
 
-        // Run pip to update gallery-dl and yt-dlp[default]
+        foreach ($this->downloaderFactory->getCliDownloaders() as $downloader) {
+            $process = new Process(
+                $downloader->getUpdateCommandArgs()
+            );
+            
+            $process->run(function ($type, $buffer) use ($io) {
+                if (Process::ERR === $type) {
+                    $io->error($buffer);
+                }
 
-        //$process = new Process('pip3 install --no-cache-dir --update gallery-dl yt-dlp[default] --break-system-packages')
-        $process = new Process([
-            'pip3',
-            'install',
-            '--no-cache-dir',
-            '--upgrade',
-            '--break-system-packages',
-            'gallery-dl',
-            '--break-system-packages',
-            '--root-user-action=ignore'
-        ]);
+                if (Process::OUT === $type) {
+                    $io->note($buffer);
+                }
+            });
 
-        $process->run(function ($type, $buffer) use ($io) {
-            if (Process::ERR === $type) {
-                $io->error($buffer);
+            if($process->isSuccessful()) {
+                // Run the version command to get the actual updated version
+                $versionProcess = new Process($downloader->getVersionCommandArgs());
+                $versionProcess->run();
+                $versionOutput = trim($versionProcess->getOutput());
+                $io->success("Upgraded {$downloader->getIdentifier()} to {$versionOutput}");
             }
-
-            if (Process::OUT === $type) {
-                $io->note($buffer);
-            }
-        });
-
-        if($process->isSuccessful()) {
-            $io->success("Upgraded all downloaders to latest available versions");
-            return 0;
         }
-
-        $io->error($process->getErrorOutput());
-        return 1;
-
+        return Command::SUCCESS;
     }
 }

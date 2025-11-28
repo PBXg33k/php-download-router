@@ -35,7 +35,12 @@ class MockDownloader implements DownloaderInterface
         return ['example.com', 'test.com'];
     }
 
-    public function getVersion(): string
+    public function getCurrentVersion(): string
+    {
+        return $this->getLatestVersion();
+    }
+
+    public function getLatestVersion(): string
     {
         return '1.0.0-mock';
     }

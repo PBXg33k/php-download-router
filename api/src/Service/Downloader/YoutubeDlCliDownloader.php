@@ -13,8 +13,9 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\Process;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
+use RuntimeException;
 
-class YoutubeDlCliDownloader extends AbstractCliDownloader implements DownloaderInterface
+class YoutubeDlCliDownloader extends AbstractCliDownloader implements CliDownloaderInterface
 {
     public function __construct(
         protected TagAwareCacheInterface   $cache,
@@ -109,6 +110,24 @@ class YoutubeDlCliDownloader extends AbstractCliDownloader implements Downloader
         $this->entityManager->flush();
     }
 
+    public function getCurrentVersion(): string
+    {
+        $versions = $this->getVersionFromPip('yt-dlp');
+        if ($versions === null) {
+            throw new RuntimeException('Unable to determine installed yt-dlp version');
+        }
+        return $versions['installed'];
+    }
+
+    public function getLatestVersion(): string
+    {
+        $versions = $this->getVersionFromPip('yt-dlp');
+        if ($versions === null) {
+            throw new RuntimeException('Unable to determine latest yt-dlp version');
+        }
+        return $versions['latest'];
+    }
+
     private function addFileToDownloadJobFromCommandOutput(DownloadJob $downloadJob, string $filePath): void
     {
         if (file_exists($filePath) && is_file($filePath)) {
@@ -163,5 +182,18 @@ class YoutubeDlCliDownloader extends AbstractCliDownloader implements Downloader
 --convert-thumbnails jpg
 --abort-on-unavailable-fragment
 EOF;
+    }
+
+    public function getUpdateCommandArgs(): array
+    {
+        return $this->getPipUpdateCommandArgs('yt-dlp');
+    }
+
+    public function getVersionCommandArgs(): array
+    {
+        return [
+            'yt-dlp',
+            '--version'
+        ];
     }
 }

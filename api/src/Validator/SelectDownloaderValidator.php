@@ -9,7 +9,7 @@ use Symfony\Component\Validator\ConstraintValidator;
 final class SelectDownloaderValidator extends ConstraintValidator
 {
     public function __construct(
-        private(set) readonly DownloaderFactory $downloaderFactory
+        private readonly DownloaderFactory $downloaderFactory,
     )
     {
     }
