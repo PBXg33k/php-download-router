@@ -45,12 +45,20 @@ class VersionProvider implements ProviderInterface
         if (isset($uriVariables['id'])) {
             $downloader = $this->downloaderFactory->getDownloaderByIdentifier($uriVariables['id']);
             if ($downloader) {
-                return new Version(
-                    id: $downloader->getIdentifier(),
-                    version: $downloader->getCurrentVersion(),
-                    currentVersion: $downloader->getCurrentVersion(),
-                    latestVersion: $downloader->getLatestVersion(),
-                );
+                try {
+                    return new Version(
+                        id: $downloader->getIdentifier(),
+                        version: $downloader->getCurrentVersion(),
+                        currentVersion: $downloader->getCurrentVersion(),
+                        latestVersion: $downloader->getLatestVersion(),
+                    );
+                } catch (\Throwable $e) {
+                    $this->logger->error('Failed to get version info', [
+                        'downloader' => $downloader->getIdentifier(),
+                        'error' => $e->getMessage(),
+                    ]);
+                    return null;
+                }
             }
         }
 

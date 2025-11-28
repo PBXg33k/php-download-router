@@ -222,4 +222,31 @@ class VersionProviderTest extends TestCase
         $this->assertInstanceOf(Version::class, $result[0]);
         $this->assertSame('healthy-downloader', $result[0]->id);
     }
+
+    public function testProvideSingleVersionReturnsNullOnErrorAndLogsFailure(): void
+    {
+        $mockDownloader = $this->createMock(DownloaderInterface::class);
+        $mockDownloader->method('getIdentifier')->willReturn('failing-single');
+        $mockDownloader->method('getCurrentVersion')->willThrowException(new \RuntimeException('Single version fetch failed'));
+
+        $this->downloaderFactory->expects($this->once())
+            ->method('getDownloaderByIdentifier')
+            ->with('failing-single')
+            ->willReturn($mockDownloader);
+
+        // Expect error to be logged
+        $this->logger->expects($this->once())
+            ->method('error')
+            ->with('Failed to get version info', $this->callback(function (array $context) {
+                return $context['downloader'] === 'failing-single'
+                    && $context['error'] === 'Single version fetch failed';
+            }));
+
+        $operation = new Get();
+
+        $result = $this->provider->provide($operation, ['id' => 'failing-single']);
+
+        // Should return null on error
+        $this->assertNull($result);
+    }
 }
