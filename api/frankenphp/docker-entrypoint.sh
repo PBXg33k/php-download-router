@@ -1,7 +1,12 @@
 #!/bin/sh
 set -e
 
+# Start cron (non-critical - only used for auto-updating downloaders)
 cron &
+sleep 1
+if ! pgrep -x cron > /dev/null; then
+    echo "WARNING: cron failed to start. Auto-updating downloaders will be disabled." >&2
+fi
 
 if [ "$1" = 'frankenphp' ] || [ "$1" = 'php' ] || [ "$1" = 'bin/console' ]; then
 	if [ -z "$(ls -A 'vendor/' 2>/dev/null)" ]; then
