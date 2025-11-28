@@ -25,10 +25,11 @@ class VersionProvider implements ProviderInterface
             $downloaders = [];
             foreach ($this->downloaderFactory->getEnabledDownloaders() as $downloader) {
                 try {
+                    $currentVersion = $downloader->getCurrentVersion();
                     $downloaders[] = new Version(
                         id: $downloader->getIdentifier(),
-                        version: $downloader->getCurrentVersion(),
-                        currentVersion: $downloader->getCurrentVersion(),
+                        version: $currentVersion,
+                        currentVersion: $currentVersion,
                         latestVersion: $downloader->getLatestVersion(),
                     );
                 } catch (\Throwable $e) {
@@ -46,10 +47,11 @@ class VersionProvider implements ProviderInterface
             $downloader = $this->downloaderFactory->getDownloaderByIdentifier($uriVariables['id']);
             if ($downloader) {
                 try {
+                    $currentVersion = $downloader->getCurrentVersion();
                     return new Version(
                         id: $downloader->getIdentifier(),
-                        version: $downloader->getCurrentVersion(),
-                        currentVersion: $downloader->getCurrentVersion(),
+                        version: $currentVersion,
+                        currentVersion: $currentVersion,
                         latestVersion: $downloader->getLatestVersion(),
                     );
                 } catch (\Throwable $e) {
