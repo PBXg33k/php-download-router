@@ -14,12 +14,11 @@ fi
 # Export current environment for cron jobs
 printenv | grep -v '^PWD=' | grep -v '^SHLVL=' | grep -v '^_' > /etc/environment
 
-# Start cron with logging
+# Start cron with logging (non-critical - only used for auto-updating downloaders)
 cron > /var/log/cron.log 2>&1 &
-# Verify cron started successfully
 sleep 1
 if ! pgrep -x cron > /dev/null; then
-    echo "ERROR: cron failed to start. Check /var/log/cron.log for details." >&2
+    echo "WARNING: cron failed to start. Auto-updating downloaders will be disabled. Check /var/log/cron.log for details." >&2
 fi
 
 # Call the main entrypoint script with the bin/console command and the appropriate arguments
