@@ -9,16 +9,19 @@ use App\Factory\DownloaderFactory;
 use App\Service\Downloader\DownloaderInterface;
 use App\State\VersionProvider;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\LoggerInterface;
 
 class VersionProviderTest extends TestCase
 {
     private VersionProvider $provider;
     private DownloaderFactory $downloaderFactory;
+    private LoggerInterface $logger;
 
     protected function setUp(): void
     {
         $this->downloaderFactory = $this->createMock(DownloaderFactory::class);
-        $this->provider = new VersionProvider($this->downloaderFactory);
+        $this->logger = $this->createMock(LoggerInterface::class);
+        $this->provider = new VersionProvider($this->downloaderFactory, $this->logger);
     }
 
     public function testProvideCollectionReturnsVersionsWithLatestVersion(): void
@@ -144,5 +147,79 @@ class VersionProviderTest extends TestCase
         $this->assertSame('5.0.0', $result->latestVersion);
         // Verify version equals currentVersion (deprecated field)
         $this->assertSame($result->currentVersion, $result->version);
+    }
+
+    public function testProvideCollectionContinuesOnErrorAndLogsFailure(): void
+    {
+        $mockDownloader1 = $this->createMock(DownloaderInterface::class);
+        $mockDownloader1->method('getIdentifier')->willReturn('failing-downloader');
+        $mockDownloader1->method('getCurrentVersion')->willThrowException(new \RuntimeException('Version fetch failed'));
+
+        $mockDownloader2 = $this->createMock(DownloaderInterface::class);
+        $mockDownloader2->method('getIdentifier')->willReturn('working-downloader');
+        $mockDownloader2->method('getCurrentVersion')->willReturn('2.0.0');
+        $mockDownloader2->method('getLatestVersion')->willReturn('2.5.0');
+
+        $this->downloaderFactory->expects($this->once())
+            ->method('getEnabledDownloaders')
+            ->willReturn([$mockDownloader1, $mockDownloader2]);
+
+        // Expect error to be logged for the failing downloader
+        $this->logger->expects($this->once())
+            ->method('error')
+            ->with('Failed to get version info', $this->callback(function (array $context) {
+                return $context['downloader'] === 'failing-downloader'
+                    && $context['error'] === 'Version fetch failed';
+            }));
+
+        $operation = new GetCollection();
+
+        $result = $this->provider->provide($operation);
+
+        // Should still return array with successful downloader
+        $this->assertIsArray($result);
+        $this->assertCount(1, $result);
+
+        // Verify the working downloader is in the result
+        $this->assertInstanceOf(Version::class, $result[0]);
+        $this->assertSame('working-downloader', $result[0]->id);
+        $this->assertSame('2.0.0', $result[0]->currentVersion);
+        $this->assertSame('2.5.0', $result[0]->latestVersion);
+    }
+
+    public function testProvideCollectionHandlesLatestVersionError(): void
+    {
+        $mockDownloader1 = $this->createMock(DownloaderInterface::class);
+        $mockDownloader1->method('getIdentifier')->willReturn('downloader-with-latest-error');
+        $mockDownloader1->method('getCurrentVersion')->willReturn('1.0.0');
+        $mockDownloader1->method('getLatestVersion')->willThrowException(new \RuntimeException('Latest version fetch failed'));
+
+        $mockDownloader2 = $this->createMock(DownloaderInterface::class);
+        $mockDownloader2->method('getIdentifier')->willReturn('healthy-downloader');
+        $mockDownloader2->method('getCurrentVersion')->willReturn('3.0.0');
+        $mockDownloader2->method('getLatestVersion')->willReturn('3.1.0');
+
+        $this->downloaderFactory->expects($this->once())
+            ->method('getEnabledDownloaders')
+            ->willReturn([$mockDownloader1, $mockDownloader2]);
+
+        // Expect error to be logged
+        $this->logger->expects($this->once())
+            ->method('error')
+            ->with('Failed to get version info', $this->callback(function (array $context) {
+                return $context['downloader'] === 'downloader-with-latest-error'
+                    && $context['error'] === 'Latest version fetch failed';
+            }));
+
+        $operation = new GetCollection();
+
+        $result = $this->provider->provide($operation);
+
+        // Should still return array with healthy downloader
+        $this->assertIsArray($result);
+        $this->assertCount(1, $result);
+
+        $this->assertInstanceOf(Version::class, $result[0]);
+        $this->assertSame('healthy-downloader', $result[0]->id);
     }
 }
