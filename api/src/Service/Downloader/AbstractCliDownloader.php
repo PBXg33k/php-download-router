@@ -147,7 +147,7 @@ abstract class AbstractCliDownloader implements DownloaderInterface
     {
         return $this->cache->get("{$this->getIdentifier()}-{$package}-version", function (ItemInterface $item) use ($package) {
             $item->tag(['cli-version', $package]);
-            $item->expiresAfter(new \DateInterval('PT1H'));
+            $item->expiresAfter(new \DateInterval('PT5M'));
 
             // Run and parse the output of 'pip index versions <package>' to extract installed and latest package versions.
             $process = new Process([
