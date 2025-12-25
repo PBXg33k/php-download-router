@@ -12,7 +12,6 @@ services:
       - cache_php:/app/cache
       - ./api/frankenphp/Caddyfile:/etc/frankenphp/Caddyfile:ro
       - ./api/frankenphp/conf.d/20-app.dev.ini:/usr/local/etc/php/app.conf.d/20-app.dev.ini:ro
-      - ./downloads:/downloads
       # If you develop on Mac or Windows you can remove the vendor/ directory
       #  from the bind-mount for better performance by enabling the next line:
       #- /app/vendor
@@ -36,7 +35,6 @@ services:
       - cache_worker:/app/cache
       - ./api/frankenphp/Caddyfile:/etc/frankenphp/Caddyfile:ro
       - ./api/frankenphp/conf.d/20-app.dev.ini:/usr/local/etc/php/app.conf.d/20-app.dev.ini:ro
-      - ./downloads:/downloads
       # If you develop on Mac or Windows you can remove the vendor/ directory
       #  from the bind-mount for better performance by enabling the next line:
       #- /app/vendor
