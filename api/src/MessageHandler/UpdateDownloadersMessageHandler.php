@@ -26,7 +26,10 @@ final class UpdateDownloadersMessageHandler
                 $process = new Process($downloader->getUpdateCommandArgs());
 
                 $process->mustRun(function (string $type, string $buffer) {
-                    $this->logger->debug("{$type}: {$buffer}");
+                    $this->logger->debug('Downloader update output', [
+                        'type' => $type,
+                        'buffer' => $buffer,
+                    ]);
                 });
             }
         }
