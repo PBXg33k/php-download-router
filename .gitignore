@@ -8,3 +8,4 @@ docker/gallery-dl/config/gallery-dl.conf
 .http/http-client.private.env.json
 /api/bolt.db
 /api/config/jwt/*.pem
+*~ # Jetbrains temp files
