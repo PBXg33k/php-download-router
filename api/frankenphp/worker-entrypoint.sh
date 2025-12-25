@@ -11,6 +11,16 @@ if [ -z "$(ls -A 'vendor/' 2>/dev/null)" ]; then
 	composer install --prefer-dist --no-progress --no-interaction
 fi
 
+# Export current environment for cron jobs
+printenv | grep -v '^PWD=' | grep -v '^SHLVL=' | grep -v '^_' > /etc/environment
+
+# Start cron with logging (non-critical - only used for auto-updating downloaders)
+cron > /var/log/cron.log 2>&1 &
+sleep 1
+if ! pgrep -x cron > /dev/null; then
+    echo "WARNING: cron failed to start. Auto-updating downloaders will be disabled. Check /var/log/cron.log for details." >&2
+fi
+
 # Call the main entrypoint script with the bin/console command and the appropriate arguments
 # to run the Symfony Messenger worker
 # You can customize the arguments as needed

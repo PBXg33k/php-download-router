@@ -6,16 +6,15 @@ use ApiPlatform\Metadata\CollectionOperationInterface;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
 use App\Entity\Version;
-use App\Enum\DownloaderTypeEnum;
 use App\Factory\DownloaderFactory;
-use Symfony\Contracts\Cache\TagAwareCacheInterface;
+use Psr\Log\LoggerInterface;
 
-readonly class VersionProvider implements ProviderInterface
+class VersionProvider implements ProviderInterface
 {
 
     public function __construct(
-        private(set) DownloaderFactory $downloaderFactory,
-        private TagAwareCacheInterface $cache,
+        private readonly DownloaderFactory $downloaderFactory,
+        private readonly LoggerInterface $logger,
     )
     {
     }
@@ -25,20 +24,20 @@ readonly class VersionProvider implements ProviderInterface
         if ($operation instanceof CollectionOperationInterface) {
             $downloaders = [];
             foreach ($this->downloaderFactory->getEnabledDownloaders() as $downloader) {
-                if ($downloader->getDownloaderType() === DownloaderTypeEnum::CLI_DOWNLOADER) {
-                    $version = $this->cache->get(
-                        "downloader_version_{$downloader->getIdentifier()}",
-                        function () use ($downloader) {
-                            return $downloader->getVersion();
-                        }
+                try {
+                    $currentVersion = $downloader->getCurrentVersion();
+                    $downloaders[] = new Version(
+                        id: $downloader->getIdentifier(),
+                        version: $currentVersion,
+                        currentVersion: $currentVersion,
+                        latestVersion: $downloader->getLatestVersion(),
                     );
-                } else {
-                    $version = $downloader->getVersion();
+                } catch (\Throwable $e) {
+                    $this->logger->error('Failed to get version info', [
+                        'downloader' => $downloader->getIdentifier(),
+                        'error' => $e->getMessage(),
+                    ]);
                 }
-                $downloaders[] = new Version(
-                    id: $downloader->getIdentifier(),
-                    version: $version,
-                );
             }
 
             return $downloaders;
@@ -47,10 +46,21 @@ readonly class VersionProvider implements ProviderInterface
         if (isset($uriVariables['id'])) {
             $downloader = $this->downloaderFactory->getDownloaderByIdentifier($uriVariables['id']);
             if ($downloader) {
-                return new Version(
-                    id: $downloader->getIdentifier(),
-                    version: $downloader->getVersion(),
-                );
+                try {
+                    $currentVersion = $downloader->getCurrentVersion();
+                    return new Version(
+                        id: $downloader->getIdentifier(),
+                        version: $currentVersion,
+                        currentVersion: $currentVersion,
+                        latestVersion: $downloader->getLatestVersion(),
+                    );
+                } catch (\Throwable $e) {
+                    $this->logger->error('Failed to get version info', [
+                        'downloader' => $downloader->getIdentifier(),
+                        'error' => $e->getMessage(),
+                    ]);
+                    return null;
+                }
             }
         }
 

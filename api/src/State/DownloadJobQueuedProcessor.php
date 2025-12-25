@@ -19,7 +19,7 @@ use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 
-readonly class DownloadJobQueuedProcessor implements ProcessorInterface
+class DownloadJobQueuedProcessor implements ProcessorInterface
 {
     public function __construct(
         /**
@@ -75,12 +75,11 @@ readonly class DownloadJobQueuedProcessor implements ProcessorInterface
                     // Cache for 24 hours if a downloader was found
                     $item->expiresAfter(86400);
                     return $downloader->getIdentifier();
-//                    $downloadJob->setDownloader($downloader->getIdentifier());
-                    break; // Use the first matching downloader
                 }
 
                 return false; // No downloader found
             });
+
             if ($downloaderKey) {
                 $downloadJob->setDownloader($downloaderKey);
             } else {

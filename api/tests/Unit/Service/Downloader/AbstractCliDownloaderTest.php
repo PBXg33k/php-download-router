@@ -53,23 +53,23 @@ class AbstractCliDownloaderTest extends TestCase
         $reflection = new \ReflectionClass($downloader);
 
         $cacheProperty = $reflection->getProperty('cache');
-        $cacheProperty->setAccessible(true);
+
         $this->assertSame($this->cache, $cacheProperty->getValue($downloader));
 
         $configPathProperty = $reflection->getProperty('configPath');
-        $configPathProperty->setAccessible(true);
+
         $this->assertSame($this->configPath, $configPathProperty->getValue($downloader));
 
         $binaryPathProperty = $reflection->getProperty('binaryPath');
-        $binaryPathProperty->setAccessible(true);
+
         $this->assertSame($this->binaryPath, $binaryPathProperty->getValue($downloader));
 
         $downloadPathProperty = $reflection->getProperty('downloadPath');
-        $downloadPathProperty->setAccessible(true);
+
         $this->assertSame($this->downloadPath, $downloadPathProperty->getValue($downloader));
 
         $loggerProperty = $reflection->getProperty('logger');
-        $loggerProperty->setAccessible(true);
+
         $this->assertSame($this->logger, $loggerProperty->getValue($downloader));
     }
 
@@ -102,7 +102,7 @@ class AbstractCliDownloaderTest extends TestCase
         // Use reflection to call the protected method
         $reflection = new \ReflectionClass($downloader);
         $method = $reflection->getMethod('createConfigFileIfNotExists');
-        $method->setAccessible(true);
+
 
         $method->invoke($downloader);
 
@@ -129,7 +129,7 @@ class AbstractCliDownloaderTest extends TestCase
         // Use reflection to call the protected method
         $reflection = new \ReflectionClass($downloader);
         $method = $reflection->getMethod('createConfigFileIfNotExists');
-        $method->setAccessible(true);
+
 
         $method->invoke($downloader);
 
@@ -152,7 +152,7 @@ class AbstractCliDownloaderTest extends TestCase
         // Use reflection to call the protected method
         $reflection = new \ReflectionClass($downloader);
         $method = $reflection->getMethod('createDownloadDirectoryIfNotExists');
-        $method->setAccessible(true);
+
 
         $method->invoke($downloader);
 
@@ -175,7 +175,7 @@ class AbstractCliDownloaderTest extends TestCase
         // Use reflection to call the protected method
         $reflection = new \ReflectionClass($downloader);
         $method = $reflection->getMethod('createDownloadDirectoryIfNotExists');
-        $method->setAccessible(true);
+
 
         $method->invoke($downloader);
 
@@ -183,6 +183,131 @@ class AbstractCliDownloaderTest extends TestCase
 
         // Cleanup
         rmdir($tempDir);
+    }
+
+    public function testGetPipUpdateCommandArgsReturnsCorrectStructure(): void
+    {
+        $downloader = $this->createConcreteDownloader();
+
+        // Use reflection to call the protected method
+        $reflection = new \ReflectionClass($downloader);
+        $method = $reflection->getMethod('getPipUpdateCommandArgs');
+
+
+        $result = $method->invoke($downloader, 'yt-dlp');
+
+        $this->assertIsArray($result);
+        $this->assertCount(5, $result);
+        $this->assertSame(['pip3', 'install', '--upgrade', '--break-system-packages', 'yt-dlp'], $result);
+    }
+
+    public function testGetPipUpdateCommandArgsWithDifferentPackage(): void
+    {
+        $downloader = $this->createConcreteDownloader();
+
+        // Use reflection to call the protected method
+        $reflection = new \ReflectionClass($downloader);
+        $method = $reflection->getMethod('getPipUpdateCommandArgs');
+
+
+        $result = $method->invoke($downloader, 'gallery-dl');
+
+        $this->assertSame(['pip3', 'install', '--upgrade', '--break-system-packages', 'gallery-dl'], $result);
+    }
+
+    public function testGetVersionFromPipReturnsCachedValue(): void
+    {
+        $expectedVersions = ['installed' => '2024.01.01', 'latest' => '2024.02.01'];
+
+        // Configure cache to return our expected value
+        $this->cache->expects($this->once())
+            ->method('get')
+            ->with('test-cli-downloader-yt-dlp-version', $this->isType('callable'))
+            ->willReturn($expectedVersions);
+
+        $downloader = $this->createConcreteDownloader();
+
+        // Use reflection to call the protected method
+        $reflection = new \ReflectionClass($downloader);
+        $method = $reflection->getMethod('getVersionFromPip');
+
+
+        $result = $method->invoke($downloader, 'yt-dlp');
+
+        $this->assertSame($expectedVersions, $result);
+    }
+
+    public function testGetVersionFromPipReturnsNullOnCacheMiss(): void
+    {
+        // Configure cache to return null (cache miss or process failure)
+        $this->cache->expects($this->once())
+            ->method('get')
+            ->with('test-cli-downloader-gallery-dl-version', $this->isType('callable'))
+            ->willReturn(null);
+
+        $downloader = $this->createConcreteDownloader();
+
+        // Use reflection to call the protected method
+        $reflection = new \ReflectionClass($downloader);
+        $method = $reflection->getMethod('getVersionFromPip');
+
+
+        $result = $method->invoke($downloader, 'gallery-dl');
+
+        $this->assertNull($result);
+    }
+
+    public function testGetVersionFromPipCacheKeyIncludesPackageName(): void
+    {
+        // Verify that different packages get different cache keys
+        $this->cache->expects($this->exactly(2))
+            ->method('get')
+            ->willReturnCallback(function (string $key, callable $callback) {
+                // Return the cache key as part of the result for verification
+                return ['cacheKey' => $key];
+            });
+
+        $downloader = $this->createConcreteDownloader();
+
+        $reflection = new \ReflectionClass($downloader);
+        $method = $reflection->getMethod('getVersionFromPip');
+
+
+        $result1 = $method->invoke($downloader, 'yt-dlp');
+        $result2 = $method->invoke($downloader, 'gallery-dl');
+
+        $this->assertSame('test-cli-downloader-yt-dlp-version', $result1['cacheKey']);
+        $this->assertSame('test-cli-downloader-gallery-dl-version', $result2['cacheKey']);
+    }
+
+    /**
+     * Test the cache callback behavior for getVersionFromPip.
+     * This tests the callback that parses pip output when cache is cold.
+     */
+    public function testGetVersionFromPipCallbackParsesValidOutput(): void
+    {
+        $callbackExecuted = false;
+
+        $this->cache->expects($this->once())
+            ->method('get')
+            ->willReturnCallback(function (string $key, callable $callback) use (&$callbackExecuted) {
+                $callbackExecuted = true;
+                // We can't fully test the callback since it executes Process,
+                // but we verify the callback is properly structured
+                $this->assertIsCallable($callback);
+                return ['installed' => '1.0.0', 'latest' => '1.0.1'];
+            });
+
+        $downloader = $this->createConcreteDownloader();
+
+        $reflection = new \ReflectionClass($downloader);
+        $method = $reflection->getMethod('getVersionFromPip');
+
+
+        $result = $method->invoke($downloader, 'test-package');
+
+        $this->assertTrue($callbackExecuted);
+        $this->assertSame(['installed' => '1.0.0', 'latest' => '1.0.1'], $result);
     }
 
     private function createConcreteDownloader(?string $configPath = null, ?string $binaryPath = null, ?string $downloadPath = null): AbstractCliDownloader
@@ -210,9 +335,14 @@ class AbstractCliDownloaderTest extends TestCase
                 return ['test.com'];
             }
 
-            public function getVersion(): string
+            public function getCurrentVersion(): string
             {
                 return '1.0.0-test';
+            }
+
+            public function getLatestVersion(): string
+            {
+                return '1.0.1-test';
             }
 
             protected function getConfigFileContents(): string

@@ -13,6 +13,7 @@ use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
 use Symfony\Component\Process\Process;
+use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 abstract class AbstractCliDownloader implements DownloaderInterface
@@ -119,7 +120,12 @@ abstract class AbstractCliDownloader implements DownloaderInterface
         }
     }
 
-    public function getVersion(): string
+    public function getDownloaderType(): DownloaderTypeEnum
+    {
+        return DownloaderTypeEnum::CLI_DOWNLOADER;
+    }
+
+    public function getCurrentVersion(): string
     {
         $process = new Process([$this->binaryPath, '--version']);
         $process->mustRun();
@@ -129,8 +135,69 @@ abstract class AbstractCliDownloader implements DownloaderInterface
         return trim($process->getOutput());
     }
 
-    public function getDownloaderType(): DownloaderTypeEnum
+    /**
+     * Get the installed and latest versions of a pip package.
+     *
+     * Uses the 'pip index versions' command and caches results for 5 minutes.
+     *
+     * @param string $package The pip package name (e.g., 'yt-dlp', 'gallery-dl')
+     * @return array{installed: string, latest: string}|null Array with 'installed' and 'latest' keys guaranteed, or null on failure
+     */
+    protected function getVersionFromPip(string $package): ?array
     {
-        return DownloaderTypeEnum::CLI_DOWNLOADER;
+        return $this->cache->get("{$this->getIdentifier()}-{$package}-version", function (ItemInterface $item) use ($package) {
+            $item->tag(['cli-version', $package]);
+            $item->expiresAfter(new \DateInterval('PT5M'));
+
+            // Run and parse the output of 'pip index versions <package>' to extract installed and latest package versions.
+            $process = new Process([
+                'pip3',
+                'index',
+                'versions',
+                $package
+            ]);
+
+            $versions = [];
+
+            $process->mustRun(function (string $type, string $buffer) use (&$versions) {
+                if (Process::OUT === $type) {
+                    if (str_contains($buffer, 'INSTALLED')) {
+                        $parts = explode(':', $buffer, 2);
+                        $versions['installed'] = trim($parts[1] ?? '');
+                    }
+
+                    if (str_contains($buffer, 'LATEST')) {
+                        $parts = explode(':', $buffer, 2);
+                        $versions['latest'] = trim($parts[1] ?? '');
+                    }
+                }
+            });
+
+            if ($process->isSuccessful()) {
+                // Ensure both required keys are present
+                if (isset($versions['installed']) && isset($versions['latest'])) {
+                    return $versions;
+                }
+            }
+
+            return null;
+        });
+    }
+
+    /**
+     * Generate pip update command arguments for a package.
+     *
+     * @param string $package The pip package name to update.
+     * @return array Command arguments for Process: ['pip3', 'install', '--upgrade', $package]
+     */
+    protected function getPipUpdateCommandArgs(string $package): array
+    {
+        return [
+            'pip3',
+            'install',
+            '--upgrade',
+            '--break-system-packages',
+            $package,
+        ];
     }
 }

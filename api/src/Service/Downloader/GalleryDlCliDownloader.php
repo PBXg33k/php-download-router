@@ -15,7 +15,7 @@ use Symfony\Component\Process\Process;
 use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
-class GalleryDlCliDownloader extends AbstractCliDownloader implements DownloaderInterface
+class GalleryDlCliDownloader extends AbstractCliDownloader implements CliDownloaderInterface
 {
     public function __construct(
         protected TagAwareCacheInterface   $cache,
@@ -47,7 +47,7 @@ class GalleryDlCliDownloader extends AbstractCliDownloader implements Downloader
 
     public function getSupportedDomains(): array
     {
-        $version = $this->getVersion();
+        $version = $this->getCurrentVersion();
         return $this->cache->get('gallery_dl_cli_supported_domains_' . $version, function (ItemInterface $item) {
             $item->tag([
                 'downloader_supported_domains',
@@ -131,5 +131,36 @@ class GalleryDlCliDownloader extends AbstractCliDownloader implements Downloader
         // If you want to generate a default config, you can run the binary with --config-create and parse the output.
         // For simplicity, return an empty config or a default template.
         return "{}";
+    }
+
+    public function getCurrentVersion(): string
+    {
+        $versions = $this->getVersionFromPip('gallery-dl');
+        if ($versions === null) {
+            throw new RuntimeException('Unable to determine installed gallery-dl version');
+        }
+        return $versions['installed'];
+    }
+
+    public function getLatestVersion(): string
+    {
+        $versions = $this->getVersionFromPip('gallery-dl');
+        if ($versions === null) {
+            throw new RuntimeException('Unable to determine latest gallery-dl version');
+        }
+        return $versions['latest'];
+    }
+
+    public function getUpdateCommandArgs(): array
+    {
+        return $this->getPipUpdateCommandArgs('gallery-dl');
+    }
+
+    public function getVersionCommandArgs(): array
+    {
+        return [
+            'gallery-dl',
+            '--version',
+        ];
     }
 }
