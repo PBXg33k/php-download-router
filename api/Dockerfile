@@ -4,7 +4,7 @@
 
 
 # Versions
-FROM dunglas/frankenphp:1-php8.4 AS frankenphp_upstream
+FROM dunglas/frankenphp:1-php8.5 AS frankenphp_upstream
 
 
 # The different stages of this Dockerfile are meant to be built into separate images
@@ -61,7 +61,6 @@ ENV PHP_INI_SCAN_DIR=":$PHP_INI_DIR/app.conf.d"
 RUN set -eux; \
 	install-php-extensions \
 		@composer \
-		amqp \
 		apcu \
 		intl \
 		opcache \

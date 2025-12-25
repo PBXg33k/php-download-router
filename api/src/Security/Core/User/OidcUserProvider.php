@@ -1,13 +1,21 @@
 <?php
 namespace App\Security\Core\User;
 
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Security\Core\User\AttributesBasedUserProviderInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 
 class OidcUserProvider implements AttributesBasedUserProviderInterface
 {
+    public function __construct(
+        private LoggerInterface $logger,
+    )
+    {
+    }
+
     public function loadUserByIdentifier(string $identifier, array $attributes = []): UserInterface
     {
+        $this->logger->debug('Loading OIDC user', ['identifier' => $identifier, 'attributes' => $attributes]);
         // Here you would typically fetch the user from your database using the identifier
         // and attributes provided. For demonstration purposes, we'll create a new OidcUser.
 
@@ -37,12 +45,14 @@ class OidcUserProvider implements AttributesBasedUserProviderInterface
 
     public function refreshUser(UserInterface $user): UserInterface
     {
+        $this->logger->debug('Refreshing OIDC user', ['user' => $user->getUserIdentifier()]);
         // Since OidcUser is stateless, we can simply return the user as is.
         return $user;
     }
 
     public function supportsClass(string $class): bool
     {
+        $this->logger->debug('Checking support for class', ['class' => $class]);
         return OidcUser::class === $class || is_subclass_of($class, OidcUser::class);
     }
 }
