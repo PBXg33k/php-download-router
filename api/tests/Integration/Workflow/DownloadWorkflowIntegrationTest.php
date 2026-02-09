@@ -106,6 +106,7 @@ class DownloadWorkflowIntegrationTest extends TestCase
         $processor = new DownloadJobQueuedProcessor(
             $persistProcessor,
             $messengerProcessor,
+            $this->logger,
             $this->downloaderFactory,
             $this->cache
         );
@@ -176,6 +177,7 @@ class DownloadWorkflowIntegrationTest extends TestCase
         $processor = new DownloadJobQueuedProcessor(
             $persistProcessor,
             $messengerProcessor,
+            $this->logger,
             $this->downloaderFactory,
             $this->cache
         );
@@ -227,6 +229,7 @@ class DownloadWorkflowIntegrationTest extends TestCase
         $processor = new DownloadJobQueuedProcessor(
             $persistProcessor,
             $messengerProcessor,
+            $this->logger,
             $this->downloaderFactory,
             $this->cache
         );
@@ -307,6 +310,7 @@ class DownloadWorkflowIntegrationTest extends TestCase
         $processor = new DownloadJobQueuedProcessor(
             $persistProcessor,
             $messengerProcessor,
+            $this->logger,
             $this->downloaderFactory,
             $this->cache
         );
@@ -343,6 +347,7 @@ class DownloadWorkflowIntegrationTest extends TestCase
         $processor = new DownloadJobQueuedProcessor(
             $persistProcessor,
             $messengerProcessor,
+            $this->logger,
             $this->downloaderFactory,
             $this->cache
         );
