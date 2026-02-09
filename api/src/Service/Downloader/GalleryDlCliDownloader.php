@@ -41,8 +41,14 @@ class GalleryDlCliDownloader extends AbstractCliDownloader implements CliDownloa
 
     public function supportsUri(UriInterface $uri): bool
     {
-        $supportedDomains = $this->getSupportedDomains();
-        return in_array($uri->getHost(), $supportedDomains, true);
+        return $this->testUrl((string)$uri);
+    }
+
+    public function testUrl($url): bool
+    {
+        $process = new Process([$this->binaryPath, '--simulate', $url]);
+        $process->run();
+        return $process->isSuccessful();
     }
 
     public function getSupportedDomains(): array
