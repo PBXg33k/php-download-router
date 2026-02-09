@@ -11,6 +11,7 @@ use Psr\Http\Message\UriInterface;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\Process;
 use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
@@ -41,8 +42,17 @@ class GalleryDlCliDownloader extends AbstractCliDownloader implements CliDownloa
 
     public function supportsUri(UriInterface $uri): bool
     {
-        $supportedDomains = $this->getSupportedDomains();
-        return in_array($uri->getHost(), $supportedDomains, true);
+        $process = new Process([
+            $this->binaryPath,
+            '--simulate',
+            (string)$uri
+        ]);
+        try {
+            $process->mustRun();
+            return $process->isSuccessful();
+        } catch (ProcessFailedException $e) {
+            return false;
+        }
     }
 
     public function getSupportedDomains(): array

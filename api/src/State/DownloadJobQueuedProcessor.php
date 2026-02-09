@@ -13,6 +13,7 @@ use App\Enum\DownloadStateEnum;
 use App\Enum\JobTypeEnum;
 use App\Factory\DownloaderFactory;
 use GuzzleHttp\Psr7\Uri;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\Exception\BadRequestException;
 use Symfony\Contracts\Cache\ItemInterface;
@@ -29,6 +30,7 @@ class DownloadJobQueuedProcessor implements ProcessorInterface
         private ProcessorInterface     $persistProcessor,
         #[Autowire(service: MessengerProcessor::class)]
         private ProcessorInterface     $messengerProcessor,
+        private LoggerInterface        $logger,
         private DownloaderFactory      $downloaderFactory,
         private TagAwareCacheInterface $cache
     )
@@ -43,6 +45,14 @@ class DownloadJobQueuedProcessor implements ProcessorInterface
      */
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): JobAcceptedDTO
     {
+        $this->logger->debug('Processing new download job', [
+            'uri' => $data->uri,
+            'data' => $data,
+            'operation' => $operation->getName(),
+            'uriVariables' => $uriVariables,
+            'context' => $context
+        ]);
+
         // Validate downloader
         if (isset($data->downloader) && !$this->downloaderFactory->isValidDownloader($data->downloader)) {
             throw new BadRequestException(
@@ -70,8 +80,12 @@ class DownloadJobQueuedProcessor implements ProcessorInterface
                 ]);
                 // Try to determine the downloader by URI
                 // This will for example run "yt-dlp --simulate <uri>" to see if yt-dlp supports the given URI
-                $downloaders = $this->downloaderFactory->getDownloadersByUri(new Uri($downloadJob->getUrl()));
+                $downloaders = $this->downloaderFactory->getDownloadersByUri($downloadJob->getUrl());
                 foreach ($downloaders as $downloader) {
+                    $this->logger->debug('Downloader supports URI', [
+                        'uri' => $downloadJob->getUri(),
+                        'downloader' => $downloader->getIdentifier()
+                    ]);
                     // Cache for 24 hours if a downloader was found
                     $item->expiresAfter(86400);
                     return $downloader->getIdentifier();
