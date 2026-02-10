@@ -21,6 +21,8 @@ if ! pgrep -x cron > /dev/null; then
     echo "WARNING: cron failed to start. Auto-updating downloaders will be disabled. Check /var/log/cron.log for details." >&2
 fi
 
+# If running as worker, wait for doctrine:migrations:status to report 'Already at latest version'
+NODE_MODE=${NODE_MODE:-worker}
 # Call the main entrypoint script with the bin/console command and the appropriate arguments
 # to run the Symfony Messenger worker
 # You can customize the arguments as needed
