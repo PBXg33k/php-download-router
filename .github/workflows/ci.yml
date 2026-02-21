@@ -93,7 +93,14 @@ jobs:
         name: Run PHPUnit
         env:
           IMAGES_PREFIX: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}
-        run: docker compose exec -T php bin/phpunit
+        run: docker compose exec -e XDEBUG_MODE=coverage -T php bin/phpunit
+      -
+        name: Code Coverage Summary
+        uses: docker://ghcr.io/ericsizemore/phpunit-coverage-check-action
+        with:
+          clover_file: 'build/logs/clover.xml'
+          threshold: 25 # Low for now, increase when we have more tests
+          show_files: true
       -
         name: Doctrine Schema Validator
         env:

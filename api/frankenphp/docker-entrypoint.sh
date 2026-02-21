@@ -94,8 +94,12 @@ if [ "$1" = 'frankenphp' ] || [ "$1" = 'php' ] || [ "$1" = 'bin/console' ]; then
 		fi
 	fi
 
-	setfacl -R -m u:www-data:rwX -m u:"$(whoami)":rwX var
-	setfacl -dR -m u:www-data:rwX -m u:"$(whoami)":rwX var
+	if ! { setfacl -R -m u:www-data:rwX -m u:"$(whoami)":rwX var 2>/dev/null && \
+	       setfacl -dR -m u:www-data:rwX -m u:"$(whoami)":rwX var 2>/dev/null; }; then
+		echo "WARNING: setfacl failed (ACLs may not be supported on this filesystem). Falling back to chmod." >&2
+		chown -R "$(whoami)":www-data var
+		chmod -R 775 var
+	fi
 
 	echo 'PHP app ready!'
 fi
