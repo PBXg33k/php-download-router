@@ -3,7 +3,6 @@
 namespace App\Tests\Api;
 
 use ApiPlatform\Symfony\Bundle\Test\ApiTestCase;
-use Symfony\Component\Security\Core\User\InMemoryUser;
 
 class DownloadJobTest extends ApiTestCase
 {

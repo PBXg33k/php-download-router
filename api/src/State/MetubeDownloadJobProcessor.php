@@ -12,16 +12,11 @@ class MetubeDownloadJobProcessor implements ProcessorInterface
 {
     public function __construct(
         private DownloadJobQueuedProcessor $downloadJobQueuedProcessor,
-    )
-    {
+    ) {
     }
 
     /**
      * @param MetubeDownloadJob $data
-     * @param Operation $operation
-     * @param array $uriVariables
-     * @param array $context
-     * @return JobAcceptedDTO
      */
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): JobAcceptedDTO
     {

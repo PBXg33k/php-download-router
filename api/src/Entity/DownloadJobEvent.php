@@ -21,7 +21,7 @@ use Gedmo\Timestampable\Traits\TimestampableEntity;
             toProperty: 'downloadJob',
             fromClass: DownloadJob::class,
             identifiers: ['uuid'],
-        )
+        ),
     ],
     stateOptions: new Options(
         handleLinks: [self::class, 'handleLinks'],
@@ -64,7 +64,7 @@ class DownloadJobEvent
     public static function handleLinks(QueryBuilder $queryBuilder, array $uriVariables, QueryNameGeneratorInterface $queryNameGenerator): void
     {
         $queryBuilder
-            ->join($queryBuilder->getRootAliases()[0] . '.downloadJob', 'download_job')
+            ->join($queryBuilder->getRootAliases()[0].'.downloadJob', 'download_job')
             ->andWhere('download_job.uuid = :downloadJob')
             ->setParameter('downloadJob', $uriVariables['downloadJobUuid']);
     }

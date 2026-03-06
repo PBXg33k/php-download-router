@@ -168,8 +168,8 @@ class VersionProviderTest extends TestCase
         $this->logger->expects($this->once())
             ->method('error')
             ->with('Failed to get version info', $this->callback(function (array $context) {
-                return $context['downloader'] === 'failing-downloader'
-                    && $context['error'] === 'Version fetch failed';
+                return 'failing-downloader' === $context['downloader']
+                    && 'Version fetch failed' === $context['error'];
             }));
 
         $operation = new GetCollection();
@@ -207,8 +207,8 @@ class VersionProviderTest extends TestCase
         $this->logger->expects($this->once())
             ->method('error')
             ->with('Failed to get version info', $this->callback(function (array $context) {
-                return $context['downloader'] === 'downloader-with-latest-error'
-                    && $context['error'] === 'Latest version fetch failed';
+                return 'downloader-with-latest-error' === $context['downloader']
+                    && 'Latest version fetch failed' === $context['error'];
             }));
 
         $operation = new GetCollection();
@@ -238,8 +238,8 @@ class VersionProviderTest extends TestCase
         $this->logger->expects($this->once())
             ->method('error')
             ->with('Failed to get version info', $this->callback(function (array $context) {
-                return $context['downloader'] === 'failing-single'
-                    && $context['error'] === 'Single version fetch failed';
+                return 'failing-single' === $context['downloader']
+                    && 'Single version fetch failed' === $context['error'];
             }));
 
         $operation = new Get();

@@ -11,9 +11,9 @@ class DownloaderTypeEnumTest extends TestCase
     {
         $expectedCases = ['WEB_DOWNLOADER', 'CLI_DOWNLOADER'];
         $cases = DownloaderTypeEnum::cases();
-        
+
         $this->assertCount(2, $cases);
-        
+
         foreach ($cases as $case) {
             $this->assertContains($case->name, $expectedCases);
         }
@@ -51,7 +51,7 @@ class DownloaderTypeEnumTest extends TestCase
     }
 
     /**
-     * Test that each enum case has an appropriate label
+     * Test that each enum case has an appropriate label.
      */
     public function testLabelAccuracy(): void
     {

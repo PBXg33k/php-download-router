@@ -40,7 +40,7 @@ use Symfony\Component\Uid\Uuid;
             formats: ['json' => ['application/json']],
             status: 202,
             openapi: false,
-            description: "Endpoint for the Metube browser extension to add download jobs.",
+            description: 'Endpoint for the Metube browser extension to add download jobs.',
             input: MetubeDownloadJob::class,
             output: JobAcceptedDTO::class,
             messenger: 'input',
@@ -52,7 +52,7 @@ use Symfony\Component\Uid\Uuid;
         new GetCollection(
             order: ['createdAt' => 'DESC'],
             security: "is_granted('ROLE_ADMIN') or is_granted('ROLE_DOWNLOAD-API_ADMINS')"
-        )
+        ),
     ],
     mercure: true
 )]

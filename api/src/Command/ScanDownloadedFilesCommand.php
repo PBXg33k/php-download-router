@@ -22,12 +22,11 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 class ScanDownloadedFilesCommand extends Command
 {
     public function __construct(
-        private DownloadJobRepository      $downloadJobRepository,
+        private DownloadJobRepository $downloadJobRepository,
         private DownloadJobEventRepository $downloadJobEventRepository,
-        private Downloaderfactory          $downloaderFactory,
-        private LoggerInterface            $logger,
-    )
-    {
+        private DownloaderFactory $downloaderFactory,
+        private LoggerInterface $logger,
+    ) {
         parent::__construct();
     }
 
@@ -44,25 +43,24 @@ class ScanDownloadedFilesCommand extends Command
 
         /** @var DownloadJob $downloadJob */
         foreach ($downloadJobsWithoutFiles as $downloadJob) {
-            if ($downloadJob->getState() !== DownloadStateEnum::COMPLETED) {
+            if (DownloadStateEnum::COMPLETED !== $downloadJob->getState()) {
                 $io->warning(sprintf('DownloadJob %d is in state %s, skipping.', $downloadJob->getId(), $downloadJob->getState()->label()));
                 continue;
             }
 
-            if ($downloadJob->getDownloader() === null) {
+            if (null === $downloadJob->getDownloader()) {
                 $downloader = $this->downloaderFactory->getDownloadersByUri($downloadJob->getUri());
             } else {
                 $downloader = $this->downloaderFactory->getDownloaderByIdentifier($downloadJob->getDownloader());
             }
 
-            if ($downloader === null) {
+            if (null === $downloader) {
                 $io->error(sprintf('No downloader found for DownloadJob %d with downloader identifier %s, skipping.', $downloadJob->getId(), $downloadJob->getDownloader()));
                 continue;
             }
 
             if ($downloader instanceof AbstractCliDownloader) {
-
-                #$this->logger->info(sprintf('Scanning downloaded files for DownloadJob %d using downloader %s', $downloadJob->getId(), $downloader->getIdentifier()));
+                // $this->logger->info(sprintf('Scanning downloaded files for DownloadJob %d using downloader %s', $downloadJob->getId(), $downloader->getIdentifier()));
                 $io->info(sprintf('Scanning downloaded files for DownloadJob %d using downloader %s', $downloadJob->getId(), $downloader->getIdentifier()));
 
                 $downloadJobEvent = $this->downloadJobEventRepository->findOneBy([
@@ -72,14 +70,14 @@ class ScanDownloadedFilesCommand extends Command
                     'updateMessage' => 'Process stopped with exit code 0 (OK)',
                 ]);
 
-                if ($downloadJobEvent === null) {
+                if (null === $downloadJobEvent) {
                     $io->error(sprintf('No download job event found for DownloadJob %d, skipping.', $downloadJob->getId()));
                     continue;
                 }
 
                 if (is_array($downloadJobEvent->getContext()['output'])) {
                     $cmdOutput = $downloadJobEvent->getContext()['output']['stdOut'];
-                } else if (is_string($downloadJobEvent->getContext()['output'])) {
+                } elseif (is_string($downloadJobEvent->getContext()['output'])) {
                     $cmdOutput = $downloadJobEvent->getContext()['output'];
                 } else {
                     $io->error(sprintf('No command output found for DownloadJob %d, skipping.', $downloadJob->getId()));

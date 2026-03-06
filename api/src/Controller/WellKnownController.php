@@ -3,27 +3,31 @@
 namespace App\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
 final class WellKnownController extends AbstractController
 {
-    #[Route('/.well-known', name: 'app_well_known')]
-    public function index(): Response
-    {
-        return $this->render('well_known/index.html.twig', [
-            'controller_name' => 'WellKnownController',
-        ]);
+    public const array SCOPES = [
+        'openid' => 'Access to your OpenID Connect identity information',
+        'profile' => 'Access to your profile information',
+        'email' => 'Access to your email address',
+        'offline_access' => 'Access to your refresh token',
+    ];
+
+    public function __construct(
+        #[Autowire('%oidc.client_id%')]
+        private string $clientId,
+    ) {
     }
 
     /**
-     * Endpoint to provider configuration for browser extensions.
+     * Endpoint to provide configuration for browser extensions.
      *
      * This endpoint will provide configuration required for using this service,
      * such as authentication methods, OAuth2 endpoints, etc.
      * This will be used by browser extensions to configure themselves to work with this service.
-     *
-     * @return Response
      */
     #[Route('/.well-known/browser-extension', name: 'app_well_known_browser_extension')]
     public function configForBrowserExtension(): Response
@@ -32,11 +36,9 @@ final class WellKnownController extends AbstractController
             [
                 'auth-mode' => 'oauth2',
                 'oauth2' => [
+                    'client_id' => $this->clientId,
                     'authorization_endpoint' => $this->generateUrl('app_start_oauth2_flow', [], true),
-                    'token_endpoint' => $this->generateUrl('app_auth_code_to_token', [], true),
-                    'scopes' => [
-                        'read' => 'Read access to your data',
-                    ],
+                    'scopes' => self::SCOPES,
                 ],
                 'version' => '1.0',
             ]

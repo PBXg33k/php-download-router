@@ -15,24 +15,31 @@ class OidcUser implements UserInterface
         private(set) ?string $email = null,
         private(set) ?string $preferredUsername = null,
         private(set) array $roles = [],
-    )
-    {
+    ) {
     }
-
 
     public function getRoles(): array
     {
-        return $this->roles;
+        $roles = $this->roles;
+        $roles[] = 'ROLE_USER';
+
+        return array_values(array_unique($roles));
     }
 
     #[\Deprecated]
     public function eraseCredentials(): void
     {
-
     }
 
     public function getUserIdentifier(): string
     {
-        return $this->nickName ?? $this->email ?? $this->sub;
+        if ('' !== trim($this->nickName)) {
+            return $this->nickName;
+        }
+        if (null !== $this->email && '' !== trim($this->email)) {
+            return $this->email;
+        }
+
+        return $this->sub;
     }
 }

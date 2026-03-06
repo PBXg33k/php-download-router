@@ -14,9 +14,8 @@ final class UpdateDownloadersMessageHandler
 {
     public function __construct(
         private(set) DownloaderFactory $downloaderFactory,
-        private(set) LoggerInterface   $logger,
-    )
-    {
+        private(set) LoggerInterface $logger,
+    ) {
     }
 
     public function __invoke(UpdateDownloadersMessage $message): void

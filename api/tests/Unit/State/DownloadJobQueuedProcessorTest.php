@@ -4,7 +4,6 @@ namespace App\Tests\Unit\State;
 
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
-use ApiPlatform\Symfony\Messenger\Processor as MessengerProcessor;
 use App\Dto\DownloadJobDTO;
 use App\Dto\JobAcceptedDTO;
 use App\Entity\DownloadJob;
@@ -65,11 +64,11 @@ class DownloadJobQueuedProcessorTest extends TestCase
             ->method('process')
             ->with(
                 $this->callback(function (DownloadJob $job) {
-                    return $job->getUri() === 'https://example.com/test.zip'
-                        && $job->getDownloader() === 'mock'
-                        && $job->getUserAgent() === 'TestAgent/1.0'
+                    return 'https://example.com/test.zip' === $job->getUri()
+                        && 'mock' === $job->getDownloader()
+                        && 'TestAgent/1.0' === $job->getUserAgent()
                         && $job->getCookies() === ['session' => 'abc123']
-                        && $job->getState() === DownloadStateEnum::PENDING;
+                        && DownloadStateEnum::PENDING === $job->getState();
                 }),
                 $this->operation,
                 [],
@@ -81,6 +80,7 @@ class DownloadJobQueuedProcessorTest extends TestCase
                 $idProperty = $reflection->getProperty('id');
 
                 $idProperty->setValue($job, 123);
+
                 return $job;
             });
 
@@ -140,6 +140,7 @@ class DownloadJobQueuedProcessorTest extends TestCase
                 $idProperty = $reflection->getProperty('id');
 
                 $idProperty->setValue($job, 456);
+
                 return $job;
             });
 
@@ -170,13 +171,13 @@ class DownloadJobQueuedProcessorTest extends TestCase
                 $item->expects($this->atLeastOnce())->method('expiresAfter');
                 $item->expects($this->once())->method('tag')->with([
                     'dlsupport',
-                    'dlsupport_example.com'
+                    'dlsupport_example.com',
                 ]);
 
                 $this->downloaderFactory->expects($this->once())
                     ->method('getDownloadersByUri')
                     ->with($this->callback(function (Uri $uri) {
-                        return $uri->getHost() === 'example.com';
+                        return 'example.com' === $uri->getHost();
                     }))
                     ->willReturn([$mockDownloader]);
 
@@ -192,6 +193,7 @@ class DownloadJobQueuedProcessorTest extends TestCase
                 $idProperty = $reflection->getProperty('id');
 
                 $idProperty->setValue($job, 789);
+
                 return $job;
             });
 
@@ -273,11 +275,11 @@ class DownloadJobQueuedProcessorTest extends TestCase
             ->method('process')
             ->with(
                 $this->callback(function (DownloadJob $job) {
-                    return $job->getUri() === 'https://example.com/minimal.zip'
-                        && $job->getDownloader() === 'mock'
-                        && $job->getUserAgent() === null
-                        && $job->getCookies() === null
-                        && $job->getState() === DownloadStateEnum::PENDING;
+                    return 'https://example.com/minimal.zip' === $job->getUri()
+                        && 'mock' === $job->getDownloader()
+                        && null === $job->getUserAgent()
+                        && null === $job->getCookies()
+                        && DownloadStateEnum::PENDING === $job->getState();
                 })
             )
             ->willReturnCallback(function (DownloadJob $job) {
@@ -286,6 +288,7 @@ class DownloadJobQueuedProcessorTest extends TestCase
                 $idProperty = $reflection->getProperty('id');
 
                 $idProperty->setValue($job, 999);
+
                 return $job;
             });
 
@@ -323,6 +326,7 @@ class DownloadJobQueuedProcessorTest extends TestCase
                 $idProperty = $reflection->getProperty('id');
 
                 $idProperty->setValue($job, 1);
+
                 return $job;
             });
 

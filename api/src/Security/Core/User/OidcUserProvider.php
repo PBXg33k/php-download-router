@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Security\Core\User;
 
 use Psr\Log\LoggerInterface;
@@ -9,26 +10,26 @@ class OidcUserProvider implements AttributesBasedUserProviderInterface
 {
     public function __construct(
         private LoggerInterface $logger,
-    )
-    {
+    ) {
     }
 
     public function loadUserByIdentifier(string $identifier, array $attributes = []): UserInterface
     {
         $this->logger->debug('Loading OIDC user', ['identifier' => $identifier, 'attributes' => $attributes]);
-        // Here you would typically fetch the user from your database using the identifier
-        // and attributes provided. For demonstration purposes, we'll create a new OidcUser.
 
-        // Example: Assuming $attributes contains 'issuer', 'sub', 'email', 'preferredUsername', and 'roles'
         $issuer = $attributes['issuer'] ?? 'default_issuer';
         $sub = $attributes['sub'] ?? $identifier;
         $email = $attributes['email'] ?? null;
         $preferredUsername = $attributes['preferred_username'] ?? null;
         $roles = $attributes['roles'] ?? ['ROLE_USER'];
 
-        // For authentik, we must use the groups claim and convert group names from "Group Name" to "ROLE_GROUP_NAME"
+        // For OIDC providers (e.g. authentik) that expose a "groups" claim, convert group names from "Group Name" to "ROLE_GROUP_NAME"
         if (isset($attributes['groups']) && is_array($attributes['groups'])) {
-            $roles = array_map(fn($group) => 'ROLE_' . strtoupper(str_replace(' ', '_', $group)), $attributes['groups']);
+            $groupRoles = array_map(
+                fn ($group) => 'ROLE_'.strtoupper(str_replace(' ', '_', $group)),
+                $attributes['groups']
+            );
+            $roles = array_values(array_unique(array_merge($roles, $groupRoles)));
         }
 
         return new OidcUser(
@@ -46,6 +47,7 @@ class OidcUserProvider implements AttributesBasedUserProviderInterface
     public function refreshUser(UserInterface $user): UserInterface
     {
         $this->logger->debug('Refreshing OIDC user', ['user' => $user->getUserIdentifier()]);
+
         // Since OidcUser is stateless, we can simply return the user as is.
         return $user;
     }
@@ -53,6 +55,7 @@ class OidcUserProvider implements AttributesBasedUserProviderInterface
     public function supportsClass(string $class): bool
     {
         $this->logger->debug('Checking support for class', ['class' => $class]);
+
         return OidcUser::class === $class || is_subclass_of($class, OidcUser::class);
     }
 }

@@ -11,7 +11,6 @@ use App\Event\CliProcessStopEvent;
 use App\Model\DownloadJobInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\LoggerInterface;
-use RuntimeException;
 use Symfony\Component\Process\Process;
 use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
@@ -22,14 +21,13 @@ abstract class AbstractCliDownloader implements DownloaderInterface
     protected const float IDLE_TIMEOUT = 300.0;
 
     public function __construct(
-        protected TagAwareCacheInterface   $cache,
+        protected TagAwareCacheInterface $cache,
         protected EventDispatcherInterface $eventDispatcher,
-        protected string                   $configPath,
-        protected string                   $binaryPath,
-        protected string                   $downloadPath,
-        protected LoggerInterface          $logger
-    )
-    {
+        protected string $configPath,
+        protected string $binaryPath,
+        protected string $downloadPath,
+        protected LoggerInterface $logger,
+    ) {
     }
 
     abstract public function addFilesToDownloadJobFromCommandOutput(DownloadJob $downloadJob, string $commandOutput): void;
@@ -53,7 +51,7 @@ abstract class AbstractCliDownloader implements DownloaderInterface
             $this->binaryPath,
             '--config', $this->configPath,
             '--verbose',
-            $downloadJob->getUrl()->__toString()
+            $downloadJob->getUrl()->__toString(),
         ], $this->downloadPath);
 
         $downloadProcess->setTimeout(self::TIMEOUT);
@@ -91,8 +89,9 @@ abstract class AbstractCliDownloader implements DownloaderInterface
         ));
 
         if (!$downloadProcess->isSuccessful()) {
-            throw new RuntimeException($downloadProcess->getErrorOutput());
+            throw new \RuntimeException($downloadProcess->getErrorOutput());
         }
+
         return true;
     }
 
@@ -134,8 +133,9 @@ abstract class AbstractCliDownloader implements DownloaderInterface
         $process = new Process([$this->binaryPath, '--version']);
         $process->mustRun();
         if (!$process->isSuccessful()) {
-            throw new RuntimeException($process->getErrorOutput());
+            throw new \RuntimeException($process->getErrorOutput());
         }
+
         return trim($process->getOutput());
     }
 
@@ -145,6 +145,7 @@ abstract class AbstractCliDownloader implements DownloaderInterface
      * Uses the 'pip index versions' command and caches results for 5 minutes.
      *
      * @param string $package The pip package name (e.g., 'yt-dlp', 'gallery-dl')
+     *
      * @return array{installed: string, latest: string}|null Array with 'installed' and 'latest' keys guaranteed, or null on failure
      */
     protected function getVersionFromPip(string $package): ?array
@@ -158,7 +159,7 @@ abstract class AbstractCliDownloader implements DownloaderInterface
                 'pip3',
                 'index',
                 'versions',
-                $package
+                $package,
             ]);
 
             $process->mustRun();
@@ -182,6 +183,7 @@ abstract class AbstractCliDownloader implements DownloaderInterface
 
             if (isset($versions['installed']) && isset($versions['latest'])) {
                 $this->logger->debug('Parsed pip versions successfully', ['versions' => $versions]);
+
                 return $versions;
             }
 
@@ -192,7 +194,8 @@ abstract class AbstractCliDownloader implements DownloaderInterface
     /**
      * Generate pip update command arguments for a package.
      *
-     * @param string $package The pip package name to update.
+     * @param string $package the pip package name to update
+     *
      * @return array Command arguments for Process: ['pip3', 'install', '--upgrade', $package]
      */
     protected function getPipUpdateCommandArgs(string $package): array

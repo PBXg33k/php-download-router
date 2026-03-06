@@ -9,7 +9,7 @@ use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
 /**
- * Integration test for DownloaderFactory with real downloader implementations
+ * Integration test for DownloaderFactory with real downloader implementations.
  */
 class DownloaderFactoryIntegrationTest extends TestCase
 {
@@ -114,11 +114,11 @@ class DownloaderFactoryIntegrationTest extends TestCase
         $matcher = $this->exactly(2);
         $logger->expects($matcher)
             ->method('debug')
-            ->willReturnCallback(function(string $key, array $value) use ($matcher) {
+            ->willReturnCallback(function (string $key, array $value) use ($matcher) {
                 match ($matcher->numberOfInvocations()) {
                     1 => $this->assertSame('Looking for downloaders supporting URI', $key),
                     2 => $this->assertSame('Checking downloader for URI support', $key),
-                    default => throw new \LogicException('Unexpected number of logger calls')
+                    default => throw new \LogicException('Unexpected number of logger calls'),
                 };
             });
 

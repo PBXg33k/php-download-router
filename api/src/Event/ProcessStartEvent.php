@@ -8,8 +8,7 @@ use Symfony\Contracts\EventDispatcher\Event;
 class ProcessStartEvent extends Event
 {
     public function __construct(
-        private(set) readonly DownloadJob $downloadJob,
-    )
-    {
+        public private(set) readonly DownloadJob $downloadJob,
+    ) {
     }
 }

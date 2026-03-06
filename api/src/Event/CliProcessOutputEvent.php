@@ -9,12 +9,11 @@ use Symfony\Contracts\EventDispatcher\Event;
 class CliProcessOutputEvent extends Event
 {
     public function __construct(
-        private(set) readonly string       $output,
-        private(set) readonly ?DownloadJob $downloadJob,
-        private(set) readonly Process      $process,
-        private(set) readonly bool         $isError = false
-    )
-    {
+        public private(set) readonly string $output,
+        public private(set) readonly ?DownloadJob $downloadJob,
+        public private(set) readonly Process $process,
+        public private(set) readonly bool $isError = false,
+    ) {
     }
 
     public function hasDownloadJobEvent(): bool

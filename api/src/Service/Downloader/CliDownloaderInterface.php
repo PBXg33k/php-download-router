@@ -11,7 +11,7 @@ interface CliDownloaderInterface extends DownloaderInterface
      * with Symfony's Process component or similar, for updating the downloader
      * (e.g., ['pip', 'install', '--upgrade', 'package-name']).
      *
-     * @return array Command arguments for updating the downloader.
+     * @return array command arguments for updating the downloader
      */
     public function getUpdateCommandArgs(): array;
 

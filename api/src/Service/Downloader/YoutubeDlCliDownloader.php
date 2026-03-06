@@ -13,24 +13,22 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\Process;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
-use RuntimeException;
 
 class YoutubeDlCliDownloader extends AbstractCliDownloader implements CliDownloaderInterface
 {
     public function __construct(
-        protected TagAwareCacheInterface   $cache,
+        protected TagAwareCacheInterface $cache,
         #[Autowire(param: 'downloader.yt_dlp_cli.config_path')]
-        protected string                   $configPath,
+        protected string $configPath,
         #[Autowire(param: 'downloader.yt_dlp_cli.binary_path')]
-        protected string                   $binaryPath,
+        protected string $binaryPath,
         #[Autowire(param: 'downloader.yt_dlp_cli.downloads_dir')]
-        protected string                   $downloadPath,
-        protected LoggerInterface          $logger,
+        protected string $downloadPath,
+        protected LoggerInterface $logger,
         protected EventDispatcherInterface $eventDispatcher,
         protected DownloadedFileRepository $downloadedFileRepository,
-        protected EntityManagerInterface   $entityManager
-    )
-    {
+        protected EntityManagerInterface $entityManager,
+    ) {
         parent::__construct($cache, $eventDispatcher, $configPath, $binaryPath, $downloadPath, $logger);
     }
 
@@ -49,10 +47,11 @@ class YoutubeDlCliDownloader extends AbstractCliDownloader implements CliDownloa
         $process = new Process([
             $this->binaryPath,
             '--simulate',
-            (string)$uri
+            (string) $uri,
         ]);
         try {
             $process->mustRun();
+
             return $process->isSuccessful();
         } catch (ProcessFailedException $e) {
             return false;
@@ -86,11 +85,11 @@ class YoutubeDlCliDownloader extends AbstractCliDownloader implements CliDownloa
                             $fileExt = $metadata['ext'] ?? null;
                             if ($fileExt) {
                                 // Look for the file with the extension
-                                $actualFilePath = preg_replace('/\.desktop$/', '.' . $fileExt, $filePath);
+                                $actualFilePath = preg_replace('/\.desktop$/', '.'.$fileExt, $filePath);
                                 $this->addFileToDownloadJobFromCommandOutput($downloadJob, $actualFilePath);
                             }
 
-                            if (json_last_error() === JSON_ERROR_NONE) {
+                            if (JSON_ERROR_NONE === json_last_error()) {
                                 $downloadedFile->setMetadata($metadata);
                             } else {
                                 $downloadedFile->setMetadata([]);
@@ -109,18 +108,20 @@ class YoutubeDlCliDownloader extends AbstractCliDownloader implements CliDownloa
     public function getCurrentVersion(): string
     {
         $versions = $this->getVersionFromPip('yt-dlp');
-        if ($versions === null) {
-            throw new RuntimeException('Unable to determine installed yt-dlp version');
+        if (null === $versions) {
+            throw new \RuntimeException('Unable to determine installed yt-dlp version');
         }
+
         return $versions['installed'];
     }
 
     public function getLatestVersion(): string
     {
         $versions = $this->getVersionFromPip('yt-dlp');
-        if ($versions === null) {
-            throw new RuntimeException('Unable to determine latest yt-dlp version');
+        if (null === $versions) {
+            throw new \RuntimeException('Unable to determine latest yt-dlp version');
         }
+
         return $versions['latest'];
     }
 
@@ -137,7 +138,7 @@ class YoutubeDlCliDownloader extends AbstractCliDownloader implements CliDownloa
                 $metadataFilePath = preg_replace('/\.[^.]+$/', '.info.json', $filePath);
                 if (file_exists($metadataFilePath) && is_file($metadataFilePath)) {
                     $metadata = json_decode(file_get_contents($metadataFilePath), true);
-                    if (json_last_error() === JSON_ERROR_NONE) {
+                    if (JSON_ERROR_NONE === json_last_error()) {
                         $downloadedFile->setMetadata($metadata);
                     } else {
                         $downloadedFile->setMetadata([]);
@@ -189,7 +190,7 @@ EOF;
     {
         return [
             'yt-dlp',
-            '--version'
+            '--version',
         ];
     }
 }

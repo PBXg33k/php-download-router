@@ -112,14 +112,14 @@ class DownloadJobTest extends TestCase
         $url = $this->downloadJob->getUrl();
 
         $this->assertInstanceOf(Uri::class, $url);
-        $this->assertSame($uri, (string)$url);
+        $this->assertSame($uri, (string) $url);
     }
 
     public function testUuidIsGeneratedAndUnique(): void
     {
         $job1 = new DownloadJob();
         $job2 = new DownloadJob();
-        
+
         $this->assertInstanceOf(Uuid::class, $job1->getUuid());
         $this->assertInstanceOf(Uuid::class, $job2->getUuid());
         $this->assertNotEquals($job1->getUuid()->toRfc4122(), $job2->getUuid()->toRfc4122());
@@ -129,7 +129,7 @@ class DownloadJobTest extends TestCase
     {
         $job1 = new DownloadJob();
         $job2 = new DownloadJob();
-        
+
         $this->assertIsString($job1->getToken());
         $this->assertIsString($job2->getToken());
         $this->assertSame(64, strlen($job1->getToken()));
@@ -163,7 +163,7 @@ class DownloadJobTest extends TestCase
     {
         $event = new DownloadJobEvent();
         $this->downloadJob->addDownloadJobEvent($event);
-        
+
         $result = $this->downloadJob->removeDownloadJobEvent($event);
 
         $this->assertSame($this->downloadJob, $result);
@@ -185,7 +185,7 @@ class DownloadJobTest extends TestCase
         $event = new DownloadJobEvent();
         $anotherJob = new DownloadJob();
         $anotherJob->addDownloadJobEvent($event);
-        
+
         $result = $this->downloadJob->removeDownloadJobEvent($event);
 
         $this->assertSame($this->downloadJob, $result);
@@ -206,7 +206,7 @@ class DownloadJobTest extends TestCase
 
         $event1 = new DownloadJobEvent();
         $event2 = new DownloadJobEvent();
-        
+
         $this->downloadJob
             ->addDownloadJobEvent($event1)
             ->addDownloadJobEvent($event2);

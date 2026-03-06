@@ -11,9 +11,9 @@ class JobTypeEnumTest extends TestCase
     {
         $expectedCases = ['DOWNLOAD'];
         $cases = JobTypeEnum::cases();
-        
+
         $this->assertCount(1, $cases);
-        
+
         foreach ($cases as $case) {
             $this->assertContains($case->name, $expectedCases);
         }

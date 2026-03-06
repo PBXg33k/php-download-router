@@ -19,7 +19,6 @@ use Symfony\Component\HttpFoundation\Exception\BadRequestException;
 use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
-
 class DownloadJobQueuedProcessor implements ProcessorInterface
 {
     public function __construct(
@@ -27,21 +26,17 @@ class DownloadJobQueuedProcessor implements ProcessorInterface
          * @var PersistProcessor $persistProcessor
          */
         #[Autowire(service: 'api_platform.doctrine.orm.state.persist_processor')]
-        private ProcessorInterface     $persistProcessor,
+        private ProcessorInterface $persistProcessor,
         #[Autowire(service: MessengerProcessor::class)]
-        private ProcessorInterface     $messengerProcessor,
-        private LoggerInterface        $logger,
-        private DownloaderFactory      $downloaderFactory,
-        private TagAwareCacheInterface $cache
-    )
-    {
+        private ProcessorInterface $messengerProcessor,
+        private LoggerInterface $logger,
+        private DownloaderFactory $downloaderFactory,
+        private TagAwareCacheInterface $cache,
+    ) {
     }
 
     /**
      * @param DownloadJobDTO $data
-     * @param Operation $operation
-     * @param array $uriVariables
-     * @param array $context
      */
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): JobAcceptedDTO
     {
@@ -50,14 +45,12 @@ class DownloadJobQueuedProcessor implements ProcessorInterface
             'data' => $data,
             'operation' => $operation->getName(),
             'uriVariables' => $uriVariables,
-            'context' => $context
+            'context' => $context,
         ]);
 
         // Validate downloader
         if (isset($data->downloader) && !$this->downloaderFactory->isValidDownloader($data->downloader)) {
-            throw new BadRequestException(
-                'Invalid downloader specified. Possible values: ' . implode(', ', array_map(fn($d) => $d->getIdentifier(), $this->downloaderFactory->getEnabledDownloaders()))
-            );
+            throw new BadRequestException('Invalid downloader specified. Possible values: '.implode(', ', array_map(fn ($d) => $d->getIdentifier(), $this->downloaderFactory->getEnabledDownloaders())));
         }
 
         $downloadJob = new DownloadJob()
@@ -69,14 +62,13 @@ class DownloadJobQueuedProcessor implements ProcessorInterface
         if (isset($data->downloader)) {
             $downloadJob->setDownloader($data->downloader);
         } else {
-
             $downloaderKey = $this->cache->get($this->getDomainProbeCacheKey($downloadJob), function (ItemInterface $item) use ($downloadJob) {
                 $item->expiresAfter(3600); // Cache for 1 hour
 
                 $item->tag([
                     'dlsupport', // Global tag for all download support checks
                     // Tag for the specific domain, so we can invalidate it if needed
-                    $this->getDomainProbeCacheKey($downloadJob)
+                    $this->getDomainProbeCacheKey($downloadJob),
                 ]);
                 // Try to determine the downloader by URI
                 // This will for example run "yt-dlp --simulate <uri>" to see if yt-dlp supports the given URI
@@ -84,10 +76,11 @@ class DownloadJobQueuedProcessor implements ProcessorInterface
                 foreach ($downloaders as $downloader) {
                     $this->logger->debug('Downloader supports URI', [
                         'uri' => $downloadJob->getUri(),
-                        'downloader' => $downloader->getIdentifier()
+                        'downloader' => $downloader->getIdentifier(),
                     ]);
                     // Cache for 24 hours if a downloader was found
                     $item->expiresAfter(86400);
+
                     return $downloader->getIdentifier();
                 }
 
@@ -103,15 +96,13 @@ class DownloadJobQueuedProcessor implements ProcessorInterface
             }
 
             if (!$downloadJob->getDownloader()) {
-                throw new BadRequestException(
-                    'No downloader found for the given URI. Possible values: ' . implode(', ', array_map(fn($d) => $d->getIdentifier(), $this->downloaderFactory->getEnabledDownloaders()))
-                );
+                throw new BadRequestException('No downloader found for the given URI. Possible values: '.implode(', ', array_map(fn ($d) => $d->getIdentifier(), $this->downloaderFactory->getEnabledDownloaders())));
             }
         }
 
         // Try converting the uri to a valid URI
         // If it fails, throw a 400 error
-        if (filter_var($downloadJob->getUri(), FILTER_VALIDATE_URL) === FALSE) {
+        if (false === filter_var($downloadJob->getUri(), FILTER_VALIDATE_URL)) {
             throw new BadRequestException('Invalid URI');
         }
 
@@ -126,13 +117,12 @@ class DownloadJobQueuedProcessor implements ProcessorInterface
             ->setJobUuid($downloadJob->getUuid()->toRfc4122())
             ->setToken($downloadJob->getToken())
             ->setJobType(JobTypeEnum::DOWNLOAD);
-
     }
 
     private function getDomainProbeCacheKey(DownloadJob $downloadJob): string
     {
         // Use the domain as the cache key
         // ie: dlsupport_example.com
-        return 'dlsupport_' . $downloadJob->getUrl()->getHost();
+        return 'dlsupport_'.$downloadJob->getUrl()->getHost();
     }
 }

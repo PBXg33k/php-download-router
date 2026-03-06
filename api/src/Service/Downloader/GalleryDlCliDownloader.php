@@ -9,7 +9,6 @@ use Doctrine\ORM\EntityManagerInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Http\Message\UriInterface;
 use Psr\Log\LoggerInterface;
-use RuntimeException;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\Process;
@@ -19,19 +18,18 @@ use Symfony\Contracts\Cache\TagAwareCacheInterface;
 class GalleryDlCliDownloader extends AbstractCliDownloader implements CliDownloaderInterface
 {
     public function __construct(
-        protected TagAwareCacheInterface   $cache,
+        protected TagAwareCacheInterface $cache,
         #[Autowire(param: 'downloader.gallery_dl_cli.config_path')]
-        protected string                   $configPath,
+        protected string $configPath,
         #[Autowire(param: 'downloader.gallery_dl_cli.binary_path')]
-        protected string                   $binaryPath,
+        protected string $binaryPath,
         #[Autowire(param: 'downloader.gallery_dl_cli.downloads_dir')]
-        protected string                   $downloadPath,
-        protected LoggerInterface          $logger,
+        protected string $downloadPath,
+        protected LoggerInterface $logger,
         protected EventDispatcherInterface $eventDispatcher,
         protected DownloadedFileRepository $downloadedFileRepository,
-        protected EntityManagerInterface   $entityManager
-    )
-    {
+        protected EntityManagerInterface $entityManager,
+    ) {
         parent::__construct($cache, $eventDispatcher, $configPath, $binaryPath, $downloadPath, $logger);
     }
 
@@ -45,10 +43,11 @@ class GalleryDlCliDownloader extends AbstractCliDownloader implements CliDownloa
         $process = new Process([
             $this->binaryPath,
             '--simulate',
-            (string)$uri
+            (string) $uri,
         ]);
         try {
             $process->mustRun();
+
             return $process->isSuccessful();
         } catch (ProcessFailedException $e) {
             return false;
@@ -58,12 +57,14 @@ class GalleryDlCliDownloader extends AbstractCliDownloader implements CliDownloa
     public function getSupportedDomains(): array
     {
         $version = $this->getCurrentVersion();
-        return $this->cache->get('gallery_dl_cli_supported_domains_' . $version, function (ItemInterface $item) {
+
+        return $this->cache->get('gallery_dl_cli_supported_domains_'.$version, function (ItemInterface $item) {
             $item->tag([
                 'downloader_supported_domains',
                 'gallery_dl_cli_downloader',
             ]);
             $item->expiresAfter(86400);
+
             return $this->fetchSupportedDomains();
         });
     }
@@ -73,7 +74,7 @@ class GalleryDlCliDownloader extends AbstractCliDownloader implements CliDownloa
         $process = new Process([$this->binaryPath, '--list-extractors']);
         $process->mustRun();
         if (!$process->isSuccessful()) {
-            throw new RuntimeException($process->getErrorOutput());
+            throw new \RuntimeException($process->getErrorOutput());
         }
         $output = $process->getOutput();
         $lines = explode("\n", $output);
@@ -89,6 +90,7 @@ class GalleryDlCliDownloader extends AbstractCliDownloader implements CliDownloa
         }
         $domains = array_unique($domains);
         sort($domains);
+
         return $domains;
     }
 
@@ -98,8 +100,8 @@ class GalleryDlCliDownloader extends AbstractCliDownloader implements CliDownloa
         $lines = explode("\n", $commandOutput);
 
         // Example output:
-        //./gallery-dl/kemono/patreon/123/123_filename.pdf
-        //./gallery-dl/kemono/patreon/123/123_filename.zip
+        // ./gallery-dl/kemono/patreon/123/123_filename.pdf
+        // ./gallery-dl/kemono/patreon/123/123_filename.zip
 
         foreach ($lines as $line) {
             $line = trim($line);
@@ -114,7 +116,7 @@ class GalleryDlCliDownloader extends AbstractCliDownloader implements CliDownloa
             if (str_starts_with($line, '# ./')) {
                 $line = substr($line, 4);
             }
-            $filePath = $this->downloadPath . '/' . ltrim($line, '/');
+            $filePath = $this->downloadPath.'/'.ltrim($line, '/');
             if (file_exists($filePath) && is_file($filePath)) {
                 $downloadedFile = $this->downloadedFileRepository->findOneBy(['path' => $filePath]);
                 if (!$downloadedFile) {
@@ -129,9 +131,9 @@ class GalleryDlCliDownloader extends AbstractCliDownloader implements CliDownloa
                 $downloadedFile->addDownloadJob($downloadJob);
                 $this->entityManager->persist($downloadJob);
                 $this->entityManager->flush();
-                $this->logger->info("Added file to download job: " . $filePath);
+                $this->logger->info('Added file to download job: '.$filePath);
             } else {
-                $this->logger->warning("File listed in command output does not exist: " . $filePath);
+                $this->logger->warning('File listed in command output does not exist: '.$filePath);
             }
         }
     }
@@ -140,24 +142,26 @@ class GalleryDlCliDownloader extends AbstractCliDownloader implements CliDownloa
     {
         // If you want to generate a default config, you can run the binary with --config-create and parse the output.
         // For simplicity, return an empty config or a default template.
-        return "{}";
+        return '{}';
     }
 
     public function getCurrentVersion(): string
     {
         $versions = $this->getVersionFromPip('gallery-dl');
-        if ($versions === null) {
-            throw new RuntimeException('Unable to determine installed gallery-dl version');
+        if (null === $versions) {
+            throw new \RuntimeException('Unable to determine installed gallery-dl version');
         }
+
         return $versions['installed'];
     }
 
     public function getLatestVersion(): string
     {
         $versions = $this->getVersionFromPip('gallery-dl');
-        if ($versions === null) {
-            throw new RuntimeException('Unable to determine latest gallery-dl version');
+        if (null === $versions) {
+            throw new \RuntimeException('Unable to determine latest gallery-dl version');
         }
+
         return $versions['latest'];
     }
 

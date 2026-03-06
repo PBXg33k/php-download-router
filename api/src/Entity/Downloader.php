@@ -17,7 +17,7 @@ use App\State\DownloaderProvider;
         new GetCollection(
             uriTemplate: '/downloaders',
             provider: DownloaderProvider::class,
-        )
+        ),
     ]
 )]
 class Downloader

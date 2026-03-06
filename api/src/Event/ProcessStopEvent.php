@@ -8,11 +8,9 @@ use Symfony\Contracts\EventDispatcher\Event;
 class ProcessStopEvent extends Event
 {
     public function __construct(
-        private(set) readonly DownloadJob $downloadJob,
-        private(set) readonly bool        $wasSuccessful,
-        private(set) readonly ?string     $errorOutput = null
-    )
-    {
-
+        public private(set) readonly DownloadJob $downloadJob,
+        public private(set) readonly bool $wasSuccessful,
+        public private(set) readonly ?string $errorOutput = null,
+    ) {
     }
 }

@@ -11,12 +11,10 @@ use Psr\Log\LoggerInterface;
 
 class VersionProvider implements ProviderInterface
 {
-
     public function __construct(
         private readonly DownloaderFactory $downloaderFactory,
         private readonly LoggerInterface $logger,
-    )
-    {
+    ) {
     }
 
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): object|array|null
@@ -48,6 +46,7 @@ class VersionProvider implements ProviderInterface
             if ($downloader) {
                 try {
                     $currentVersion = $downloader->getCurrentVersion();
+
                     return new Version(
                         id: $downloader->getIdentifier(),
                         version: $currentVersion,
@@ -59,6 +58,7 @@ class VersionProvider implements ProviderInterface
                         'downloader' => $downloader->getIdentifier(),
                         'error' => $e->getMessage(),
                     ]);
+
                     return null;
                 }
             }

@@ -4,7 +4,6 @@ namespace App\Tests\Integration\Workflow;
 
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
-use ApiPlatform\Symfony\Messenger\Processor as MessengerProcessor;
 use App\Dto\DownloadJobDTO;
 use App\Entity\DownloadJob;
 use App\Enum\DownloadStateEnum;
@@ -17,12 +16,11 @@ use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcher;
-use Symfony\Component\Uid\Uuid;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 /**
  * Integration test for the complete download workflow
- * From DTO processing through to job handling
+ * From DTO processing through to job handling.
  */
 class DownloadWorkflowIntegrationTest extends TestCase
 {
@@ -98,6 +96,7 @@ class DownloadWorkflowIntegrationTest extends TestCase
                 $idProperty = $reflection->getProperty('id');
 
                 $idProperty->setValue($job, 123);
+
                 return $job;
             });
 
@@ -157,6 +156,7 @@ class DownloadWorkflowIntegrationTest extends TestCase
                 $item = $this->createMock(\Symfony\Contracts\Cache\ItemInterface::class);
                 $item->method('expiresAfter');
                 $item->method('tag');
+
                 return $callback($item);
             });
 
@@ -169,6 +169,7 @@ class DownloadWorkflowIntegrationTest extends TestCase
                 $idProperty = $reflection->getProperty('id');
 
                 $idProperty->setValue($job, 456);
+
                 return $job;
             });
 
@@ -217,6 +218,7 @@ class DownloadWorkflowIntegrationTest extends TestCase
                 $item = $this->createMock(\Symfony\Contracts\Cache\ItemInterface::class);
                 $item->method('expiresAfter');
                 $item->method('tag');
+
                 return $callback($item);
             });
 
@@ -339,6 +341,7 @@ class DownloadWorkflowIntegrationTest extends TestCase
                 $idProperty = $reflection->getProperty('id');
 
                 $idProperty->setValue($job, 999);
+
                 return $job;
             });
 

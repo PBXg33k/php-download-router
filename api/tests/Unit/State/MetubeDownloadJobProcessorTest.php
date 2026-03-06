@@ -20,7 +20,7 @@ class MetubeDownloadJobProcessorTest extends TestCase
     {
         $this->downloadJobQueuedProcessor = $this->createMock(DownloadJobQueuedProcessor::class);
         $this->operation = $this->createMock(Operation::class);
-        
+
         $this->processor = new MetubeDownloadJobProcessor($this->downloadJobQueuedProcessor);
     }
 
@@ -40,7 +40,7 @@ class MetubeDownloadJobProcessorTest extends TestCase
             ->method('process')
             ->with(
                 $this->callback(function ($dto) {
-                    return $dto->uri === 'https://youtube.com/watch?v=test123';
+                    return 'https://youtube.com/watch?v=test123' === $dto->uri;
                 }),
                 $this->operation,
                 [],
@@ -63,7 +63,7 @@ class MetubeDownloadJobProcessorTest extends TestCase
 
         $uriVariables = ['id' => 123];
         $context = ['operation' => 'create'];
-        
+
         $expectedUuid = '6ba7b810-9dad-11d1-80b4-00c04fd430c9';
         $expectedToken = 'fedcba0987654321fedcba0987654321fedcba0987654321fedcba0987654321';
         $expectedResult = new JobAcceptedDTO();
@@ -75,7 +75,7 @@ class MetubeDownloadJobProcessorTest extends TestCase
             ->method('process')
             ->with(
                 $this->callback(function ($dto) {
-                    return $dto->uri === 'https://vimeo.com/123456789';
+                    return 'https://vimeo.com/123456789' === $dto->uri;
                 }),
                 $this->operation,
                 $uriVariables,
@@ -101,7 +101,7 @@ class MetubeDownloadJobProcessorTest extends TestCase
             $metubeJob = new MetubeDownloadJob();
             $metubeJob->url = $url;
 
-            $expectedUuid = '6ba7b810-9dad-11d1-80b4-00c04fd430c' . $index;
+            $expectedUuid = '6ba7b810-9dad-11d1-80b4-00c04fd430c'.$index;
             $expectedToken = bin2hex(random_bytes(32));
             $expectedResult = new JobAcceptedDTO();
             $expectedResult->setJobUuid($expectedUuid);
@@ -153,11 +153,12 @@ class MetubeDownloadJobProcessorTest extends TestCase
             ->method('process')
             ->willReturnCallback(function ($dto) use (&$capturedDTO) {
                 $capturedDTO = $dto;
-                
+
                 $result = new JobAcceptedDTO();
                 $result->setJobUuid('6ba7b810-9dad-11d1-80b4-00c04fd430dd');
                 $result->setToken(bin2hex(random_bytes(32)));
                 $result->setJobType(JobTypeEnum::DOWNLOAD);
+
                 return $result;
             });
 
@@ -166,7 +167,7 @@ class MetubeDownloadJobProcessorTest extends TestCase
         // Verify the DTO was created correctly
         $this->assertNotNull($capturedDTO);
         $this->assertSame('https://example.com/test.mp4', $capturedDTO->uri);
-        
+
         // Verify that other DTO properties are not set (default behavior)
         $this->assertFalse(isset($capturedDTO->userAgent));
         $this->assertFalse(isset($capturedDTO->cookies));

@@ -11,19 +11,18 @@ use Symfony\Component\DependencyInjection\Attribute\AutowireIterator;
 class DownloaderFactory
 {
     /**
-     * @var iterable <\App\Service\Downloader\DownloaderInterface>
+     * @var iterable <DownloaderInterface>
      */
     private iterable $downloaders;
 
     public function __construct(
-        #[AutoWireIterator('app.downloader')]
-        iterable                $downloaders,
+        #[AutowireIterator('app.downloader')]
+        iterable $downloaders,
         private LoggerInterface $logger,
-    )
-    {
+    ) {
         // Reindex the iterable to an array to avoid multiple iterations over the generator.
         foreach ($downloaders as $downloader) {
-            /** @var DownloaderInterface $downloader */
+            /* @var DownloaderInterface $downloader */
             $this->downloaders[$downloader->getIdentifier()] = $downloader;
         }
     }
@@ -60,7 +59,6 @@ class DownloaderFactory
     }
 
     /**
-     * @param UriInterface $uri
      * @return iterable<DownloaderInterface>
      */
     public function getDownloadersByUri(UriInterface $uri): iterable
@@ -69,7 +67,7 @@ class DownloaderFactory
         foreach ($this->downloaders as $downloader) {
             $this->logger->debug('Checking downloader for URI support', [
                 'downloader' => $downloader->getIdentifier(),
-                'uri' => $uri
+                'uri' => $uri,
             ]);
             /** @var DownloaderInterface $downloader */
             if ($downloader->supportsUri($uri)) {

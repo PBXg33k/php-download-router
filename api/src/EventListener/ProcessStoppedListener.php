@@ -16,12 +16,11 @@ use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 class ProcessStoppedListener
 {
     public function __construct(
-        private LoggerInterface        $logger,
+        private LoggerInterface $logger,
         private EntityManagerInterface $entityManager,
-        private DownloadJobRepository  $downloadJobRepository,
-        private DownloaderFactory      $downloaderFactory
-    )
-    {
+        private DownloadJobRepository $downloadJobRepository,
+        private DownloaderFactory $downloaderFactory,
+    ) {
     }
 
     #[AsEventListener(event: CliProcessStopEvent::class)]
@@ -43,7 +42,7 @@ class ProcessStoppedListener
                 ->setDownloadJob($downloadJob)
                 ->setEvent('process.stopped')
                 ->setSource('listener')
-                ->setUpdateMessage('Process stopped with exit code ' . $event->exitCode . ' (' . $event->exitCodeText . ')')
+                ->setUpdateMessage('Process stopped with exit code '.$event->exitCode.' ('.$event->exitCodeText.')')
                 ->setContext([
                     'command' => $event->process->getCommandLine(),
                     'exit_code' => $event->exitCode,
@@ -72,17 +71,17 @@ class ProcessStoppedListener
     {
         $downloadJob = $event->downloadJob;
 
-        if ($downloadJob->getState() !== DownloadStateEnum::COMPLETED) {
+        if (DownloadStateEnum::COMPLETED !== $downloadJob->getState()) {
             return;
         }
 
-        if ($downloadJob->getDownloader() === null) {
+        if (null === $downloadJob->getDownloader()) {
             $downloader = $this->downloaderFactory->getDownloadersByUri($downloadJob->getUrl());
         } else {
             $downloader = $this->downloaderFactory->getDownloaderByIdentifier($downloadJob->getDownloader());
         }
 
-        if ($downloader === null) {
+        if (null === $downloader) {
             return;
         }
 

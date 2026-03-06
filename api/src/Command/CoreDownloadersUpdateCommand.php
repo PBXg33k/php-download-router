@@ -18,8 +18,7 @@ class CoreDownloadersUpdateCommand extends Command
 {
     public function __construct(
         private DownloaderFactory $downloaderFactory,
-    )
-    {
+    ) {
         parent::__construct();
     }
 
@@ -46,7 +45,7 @@ class CoreDownloadersUpdateCommand extends Command
                 }
             });
 
-            if($process->isSuccessful()) {
+            if ($process->isSuccessful()) {
                 // Run the version command to get the actual updated version
                 $versionProcess = new Process($downloader->getVersionCommandArgs());
                 $versionProcess->run();
@@ -54,6 +53,7 @@ class CoreDownloadersUpdateCommand extends Command
                 $io->success("Upgraded {$downloader->getIdentifier()} to {$versionOutput}");
             }
         }
+
         return Command::SUCCESS;
     }
 }
