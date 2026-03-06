@@ -3,6 +3,7 @@
 namespace App\Tests\Api;
 
 use ApiPlatform\Symfony\Bundle\Test\ApiTestCase;
+use Symfony\Component\Security\Core\User\InMemoryUser;
 
 class DownloadJobTest extends ApiTestCase
 {
@@ -24,6 +25,7 @@ class DownloadJobTest extends ApiTestCase
             ],
             'headers' => [
                 'Content-Type' => 'application/ld+json',
+                'Authorization' => 'Basic '.base64_encode('admin:adminpass'),
             ],
         ]);
 
@@ -39,6 +41,7 @@ class DownloadJobTest extends ApiTestCase
             ],
             'headers' => [
                 'Content-Type' => 'application/ld+json',
+                'Authorization' => 'Basic '.base64_encode('admin:adminpass'),
             ],
         ]);
 
