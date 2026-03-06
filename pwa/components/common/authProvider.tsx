@@ -49,23 +49,39 @@ const authProvider: AuthProvider = {
     }
 
     // This is specific to the Google authentication implementation
-    const jwt = getProfileFromToken(token);
-    const now = new Date();
-
-    return now.getTime() > jwt.exp * 1000
-      ? Promise.reject()
-      : Promise.resolve();
+    try {
+      const jwt: any = getProfileFromToken(token);
+      const exp = jwt?.exp;
+      if (typeof exp !== "number") {
+        return Promise.reject();
+      }
+      const now = Date.now();
+      return now > exp * 1000 ? Promise.reject() : Promise.resolve();
+    } catch (error) {
+      console.error("Failed to decode token in checkAuth:", error);
+      return Promise.reject();
+    }
   },
   getPermissions: () => Promise.resolve(),
   getIdentity: () => {
     const token = window.localStorage.getItem("token");
-    const profile = getProfileFromToken(token);
-
-    return Promise.resolve({
-      id: profile.sub,
-      fullName: profile.name,
-      avatar: profile.picture,
-    });
+    if (!token) {
+      return Promise.reject();
+    }
+    try {
+      const profile: any = getProfileFromToken(token);
+      if (!profile || !profile.sub) {
+        return Promise.reject();
+      }
+      return Promise.resolve({
+        id: profile.sub,
+        fullName: profile.name ?? "",
+        avatar: profile.picture,
+      });
+    } catch (error) {
+      console.error("Failed to decode token in getIdentity:", error);
+      return Promise.reject();
+    }
   },
   handleCallback: async () => {
     // We came back from the issuer with ?code infos in query params

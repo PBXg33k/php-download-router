@@ -28,7 +28,7 @@ const httpClient = async (url: string, options: fetchUtils.Options = {}) => {
 const dataProvider = openApiDataProvider({
   dataProvider: simpleRestProvider(window.origin.toString(), httpClient),
   entrypoint: window.origin.toString(),
-  docEntrypoint: `docs.jsonopenapi`,
+  docEntrypoint: `${window.origin.toString()}/docs.jsonopenapi`,
 });
 
 export default dataProvider;
