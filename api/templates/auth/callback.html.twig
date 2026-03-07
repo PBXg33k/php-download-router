@@ -90,6 +90,12 @@
 
         // Also dispatch a custom event on the document for same-page listeners
         document.dispatchEvent(new CustomEvent('auth-result', { detail: message }));
+
+
+        // Close the window after 500ms since we've send the message back and don't need this page anymore.
+        setTimeout(function() {
+            window.close();
+        }, 500);
     })();
 </script>
 {% endblock %}
