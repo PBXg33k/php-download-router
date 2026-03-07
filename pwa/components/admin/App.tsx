@@ -1,17 +1,16 @@
 import {
   HydraAdmin,
   fetchHydra as baseFetchHydra,
-  hydraDataProvider as baseHydraDataProvider, ResourceGuesser
+  hydraDataProvider as baseHydraDataProvider,
 } from "@api-platform/admin";
 import { parseHydraDocumentation } from "@api-platform/api-doc-parser";
 import authProvider from "../common/authProvider";
-import LoginPage from "../../pages/loginPage";
+import LoginPage from "../loginPage";
 import { Navigate } from "react-router-dom";
 import { useIntrospection } from "@api-platform/admin";
 import {useState} from "react";
-import { DownloadJobList } from "../list/DownloadJobList";
 
-const getHeaders = () => {
+const getHeaders = (): Record<string, string> => {
   // token is stored in localStorage by the authProvider during the login process
   // it contains the entire JWT token, which is needed for the API calls to be authenticated
   // we need to get the access_token from the JWT token and add it to the Authorization header
@@ -25,10 +24,10 @@ const getHeaders = () => {
   return { Authorization: `Bearer ${accessToken}` };
 }
 
-const fetchHydra = (url: URL, options: RequestInit) =>
+const fetchHydra = (url: URL, options?: Record<string, any>) =>
   baseFetchHydra(url, {
     ...options,
-    headers: getHeaders
+    headers: getHeaders,
   });
 
 
@@ -47,7 +46,7 @@ const apiDocumentationParser = (setRedirectToLogin: (arg0: boolean) => void) => 
   try {
     setRedirectToLogin(false);
     return await parseHydraDocumentation(window.origin, { headers: getHeaders });
-  } catch (result) {
+  } catch (result: any) {
     const { api, response, status } = result;
     if (status !== 401 || !response) {
       throw result;

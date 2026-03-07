@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Login } from "react-admin"
-import authProvider from "../components/common/authProvider";
+import authProvider from "./common/authProvider";
 
 const LoginPage = () => (
     <Login>
