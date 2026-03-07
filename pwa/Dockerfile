@@ -1,8 +1,8 @@
 #syntax=docker/dockerfile:1
-ENV APP_VERSION=undefined
 
 # Versions
 FROM node:lts AS node_upstream
+ENV APP_VERSION=undefined
 
 
 # Base stage for dev and build
@@ -23,6 +23,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 
 # Development image
 FROM base AS dev
+ENV APP_VERSION=undefined
 
 EXPOSE 3000
 ENV PORT=3000
@@ -42,6 +43,7 @@ RUN	pnpm install --frozen-lockfile --prod && \
 
 # Production image, copy all the files and run next
 FROM node_upstream AS prod
+ENV APP_VERSION=undefined
 
 WORKDIR /srv/app
 
