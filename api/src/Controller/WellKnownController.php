@@ -35,7 +35,7 @@ final class WellKnownController extends AbstractController
     {
         return $this->json(
             [
-                'auth-mode' => 'oauth2',
+                'auth_mode' => 'oauth2',
                 'oauth2' => [
                     'client_id' => $this->clientId,
                     'authorization_endpoint' => $this->generateUrl(
