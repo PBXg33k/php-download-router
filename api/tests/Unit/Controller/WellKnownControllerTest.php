@@ -36,8 +36,8 @@ class WellKnownControllerTest extends TestCase
         $this->assertInstanceOf(JsonResponse::class, $response);
         $this->assertSame(200, $response->getStatusCode());
         $data = json_decode($response->getContent(), true);
-        $this->assertSame('oauth2', $data['auth-mode']);
-        $this->assertSame('1.0', $data['version']);
+        $this->assertSame('oauth2', $data['auth_mode']);
+        $this->assertSame('dev', $data['version']);
         $this->assertArrayHasKey('oauth2', $data);
         $oauth2 = $data['oauth2'];
         $this->assertSame(self::CLIENT_ID, $oauth2['client_id']);
