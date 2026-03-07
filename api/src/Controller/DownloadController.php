@@ -49,7 +49,11 @@ final class DownloadController extends AbstractController
         switch ($downloadJob->getDownloader()) {
             case 'yt-dlp-cli':
                 $metadata = $file->getMetadata();
-                $filename = $metadata['title'].'.'.$metadata['ext'] ?? basename($file->getPath() ?: 'downloaded_file');
+                if (isset($metadata['title'], $metadata['ext']) && $metadata['title'] !== '' && $metadata['ext'] !== '') {
+                    $filename = $metadata['title'].'.'.$metadata['ext'];
+                } else {
+                    $filename = basename($file->getPath() ?: 'downloaded_file');
+                }
                 break;
             case 'gallery-dl-cli':
                 $metadata = $file->getMetadata();
