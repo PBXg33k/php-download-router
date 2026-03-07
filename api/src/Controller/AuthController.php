@@ -173,17 +173,6 @@ final class AuthController extends AbstractController
         );
 
         try {
-            $this->logger->debug('Sending token request to IdP', [
-                'body' => [
-                    'client_id' => $this->clientId,
-                    'client_secret' => $this->clientSecret,
-                    'code' => $code,
-                    'code_verifier' => $codeVerifier,
-                    'redirect_uri' => $redirectUri,
-                    'grant_type' => 'authorization_code',
-                ],
-            ]);
-
             $response = $this->httpClient->request('POST', $tokenEndpoint, [
                 'body' => [
                     'client_id' => $this->clientId,
