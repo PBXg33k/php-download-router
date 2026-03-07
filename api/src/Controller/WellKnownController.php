@@ -6,6 +6,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 final class WellKnownController extends AbstractController
 {
@@ -37,7 +38,10 @@ final class WellKnownController extends AbstractController
                 'auth-mode' => 'oauth2',
                 'oauth2' => [
                     'client_id' => $this->clientId,
-                    'authorization_endpoint' => $this->generateUrl('app_start_oauth2_flow', [], true),
+                    'authorization_endpoint' => $this->generateUrl(
+                        route: 'app_start_oauth2_flow',
+                        referenceType: UrlGeneratorInterface::ABSOLUTE_URL
+                    ),
                     'scopes' => self::SCOPES,
                 ],
                 'version' => '1.0',

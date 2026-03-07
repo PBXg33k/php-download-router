@@ -82,7 +82,10 @@ final class AuthController extends AbstractController
         $this->cache->save($cacheItem);
 
         // The redirect_uri points to the server's own callback endpoint
-        $redirectUri = $this->generateUrl('app_auth_callback', [], UrlGeneratorInterface::ABSOLUTE_URL);
+        $redirectUri = $this->generateUrl(
+            route: 'app_auth_callback',
+            referenceType: UrlGeneratorInterface::ABSOLUTE_URL
+        );
 
         // Build OAuth2 query parameters
         $queryParams = [
@@ -164,7 +167,10 @@ final class AuthController extends AbstractController
         }
 
         // The redirect_uri must match exactly what was sent in the authorization request
-        $redirectUri = $this->generateUrl('app_auth_callback', [], UrlGeneratorInterface::ABSOLUTE_URL);
+        $redirectUri = $this->generateUrl(
+            route: 'app_auth_callback',
+            referenceType: UrlGeneratorInterface::ABSOLUTE_URL
+        );
 
         try {
             $this->logger->debug('Sending token request to IdP', [
