@@ -32,7 +32,7 @@ parameters:
     oidc.discovery_base_uri: '%env(default:oidc_defaults_discovery_base_uri:OIDC_DISCOVERY_BASE_URI)%'
     fallback.claim: 'sub'
     oidc.claim: '%env(default:fallback.claim:OIDC_CLAIM)%'
-    oidc_defaults_enabled: 'false'
+    oidc_defaults_enabled: false
     oidc_defaults_client_id: '0'
     oidc_defaults_client_secret: '0'
     oidc_defaults_well_known_url: '0'
