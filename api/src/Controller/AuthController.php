@@ -334,7 +334,15 @@ final class AuthController extends AbstractController
             ]
         );
 
-        return new Response($response->getContent(), $response->getStatusCode(), $response->getHeaders());
+        $headers = $response->getHeaders();
+
+        // remove the content length header if it exists
+        // It triggers an error in Caddy
+        if (isset($headers['content-length'])) {
+            unset($headers['content-length']);
+        }
+
+        return new Response($response->getContent(), $response->getStatusCode(), $headers);
     }
 
     private function getTokenEndpoint(): ?string
