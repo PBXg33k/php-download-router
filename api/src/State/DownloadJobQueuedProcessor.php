@@ -13,8 +13,6 @@ use App\Enum\DownloadStateEnum;
 use App\Enum\JobTypeEnum;
 use App\Factory\DownloaderFactory;
 use App\Repository\OidcSubjectIdentifierRepository;
-use App\Security\Core\User\OidcUser;
-use GuzzleHttp\Psr7\Uri;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
