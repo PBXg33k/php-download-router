@@ -13,8 +13,8 @@ use Symfony\Component\Process\Process;
 final class UpdateDownloadersMessageHandler
 {
     public function __construct(
-        private(set) DownloaderFactory $downloaderFactory,
-        private(set) LoggerInterface $logger,
+        private readonly DownloaderFactory $downloaderFactory,
+        private readonly LoggerInterface $logger,
     ) {
     }
 
