@@ -81,6 +81,10 @@
         }
 
         // Try to send to opener (popup flow) or parent (iframe flow)
+        // TODO(security): Replace '*' with the specific extension origin(s) once the browser
+        // extensions are published on the Chrome Web Store and Firefox Add-ons marketplace and
+        // their extension IDs are known. Using '*' as targetOrigin risks leaking tokens to any
+        // page that opens this callback. See: https://developer.mozilla.org/en-US/docs/Web/API/Window/postMessage#security_concerns
         if (window.opener) {
             window.opener.postMessage(message, '*');
         }
