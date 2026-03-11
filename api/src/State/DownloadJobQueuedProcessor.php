@@ -12,8 +12,11 @@ use App\Entity\DownloadJob;
 use App\Enum\DownloadStateEnum;
 use App\Enum\JobTypeEnum;
 use App\Factory\DownloaderFactory;
+use App\Repository\OidcSubjectIdentifierRepository;
+use App\Security\Core\User\OidcUser;
 use GuzzleHttp\Psr7\Uri;
 use Psr\Log\LoggerInterface;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\Exception\BadRequestException;
 use Symfony\Contracts\Cache\ItemInterface;
@@ -32,6 +35,8 @@ class DownloadJobQueuedProcessor implements ProcessorInterface
         private LoggerInterface $logger,
         private DownloaderFactory $downloaderFactory,
         private TagAwareCacheInterface $cache,
+        private Security $security,
+        private OidcSubjectIdentifierRepository $oidcSubjectIdentifierRepository,
     ) {
     }
 
@@ -40,6 +45,19 @@ class DownloadJobQueuedProcessor implements ProcessorInterface
      */
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): JobAcceptedDTO
     {
+        $downloadJob = new DownloadJob();
+
+        $securityUser = $this->security->getUser();
+
+        if ($securityUser) {
+            $oidcSubjectIdentifier = $this->oidcSubjectIdentifierRepository->findOneBy(['subject' => $securityUser->getUserIdentifier()]);
+            if (!$oidcSubjectIdentifier) {
+                throw new \RuntimeException('OIDC subject identifier not found. Subject: ' . $securityUser->getUserIdentifier());
+            }
+
+            $downloadJob->setOwner($oidcSubjectIdentifier);
+        }
+
         $this->logger->debug('Processing new download job', [
             'uri' => $data->uri,
             'data' => $data,
@@ -53,7 +71,7 @@ class DownloadJobQueuedProcessor implements ProcessorInterface
             throw new BadRequestException('Invalid downloader specified. Possible values: '.implode(', ', array_map(fn ($d) => $d->getIdentifier(), $this->downloaderFactory->getEnabledDownloaders())));
         }
 
-        $downloadJob = new DownloadJob()
+        $downloadJob
             ->setUri($data->uri)
             ->setUserAgent($data->userAgent ?? null)
             ->setCookies($data->cookies ?? null)

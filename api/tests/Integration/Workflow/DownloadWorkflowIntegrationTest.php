@@ -10,11 +10,13 @@ use App\Enum\DownloadStateEnum;
 use App\Factory\DownloaderFactory;
 use App\Handler\DownloadJobHandler;
 use App\Repository\DownloadJobRepository;
+use App\Repository\OidcSubjectIdentifierRepository;
 use App\Service\Downloader\MockDownloader;
 use App\State\DownloadJobQueuedProcessor;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
@@ -33,6 +35,10 @@ class DownloadWorkflowIntegrationTest extends TestCase
     private LoggerInterface $logger;
     private EventDispatcher $eventDispatcher;
     private TagAwareCacheInterface $cache;
+    private Security $security;
+    private OidcSubjectIdentifierRepository $oidcSubjectIdentifierRepository;
+    private ProcessorInterface $persistProcessor;
+    private ProcessorInterface $messengerProcessor;
     private array $dispatchedEvents = [];
 
     protected function setUp(): void
@@ -44,6 +50,8 @@ class DownloadWorkflowIntegrationTest extends TestCase
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
         $this->repository = $this->createMock(DownloadJobRepository::class);
         $this->cache = $this->createMock(TagAwareCacheInterface::class);
+        $this->security = $this->createMock(Security::class);
+        $this->oidcSubjectIdentifierRepository = $this->createMock(OidcSubjectIdentifierRepository::class);
         $this->eventDispatcher = new EventDispatcher();
         $this->dispatchedEvents = [];
 
@@ -56,15 +64,17 @@ class DownloadWorkflowIntegrationTest extends TestCase
             ->with(DownloadJob::class)
             ->willReturn($this->repository);
 
-        $persistProcessor = $this->createMock(ProcessorInterface::class);
-        $messengerProcessor = $this->createMock(ProcessorInterface::class);
+        $this->persistProcessor = $this->createMock(ProcessorInterface::class);
+        $this->messengerProcessor = $this->createMock(ProcessorInterface::class);
 
         $this->processor = new DownloadJobQueuedProcessor(
-            $persistProcessor,
-            $messengerProcessor,
+            $this->persistProcessor,
+            $this->messengerProcessor,
             $this->logger,
             $this->downloaderFactory,
-            $this->cache
+            $this->cache,
+            $this->security,
+            $this->oidcSubjectIdentifierRepository
         );
 
         $this->handler = new DownloadJobHandler(
@@ -87,8 +97,7 @@ class DownloadWorkflowIntegrationTest extends TestCase
 
         // Mock persistence to return job with ID
         $persistedJob = null;
-        $persistProcessor = $this->createMock(ProcessorInterface::class);
-        $persistProcessor->method('process')
+        $this->persistProcessor->method('process')
             ->willReturnCallback(function (DownloadJob $job) use (&$persistedJob) {
                 $persistedJob = $job;
                 // Simulate ID assignment
@@ -100,17 +109,7 @@ class DownloadWorkflowIntegrationTest extends TestCase
                 return $job;
             });
 
-        $messengerProcessor = $this->createMock(ProcessorInterface::class);
-
-        $processor = new DownloadJobQueuedProcessor(
-            $persistProcessor,
-            $messengerProcessor,
-            $this->logger,
-            $this->downloaderFactory,
-            $this->cache
-        );
-
-        $result = $processor->process($dto, $operation);
+        $result = $this->processor->process($dto, $operation);
 
         // Verify DTO processing
         $this->assertIsString($result->getJobUuid());
@@ -161,8 +160,7 @@ class DownloadWorkflowIntegrationTest extends TestCase
             });
 
         $persistedJob = null;
-        $persistProcessor = $this->createMock(ProcessorInterface::class);
-        $persistProcessor->method('process')
+        $this->persistProcessor->method('process')
             ->willReturnCallback(function (DownloadJob $job) use (&$persistedJob) {
                 $persistedJob = $job;
                 $reflection = new \ReflectionClass($job);
@@ -173,17 +171,7 @@ class DownloadWorkflowIntegrationTest extends TestCase
                 return $job;
             });
 
-        $messengerProcessor = $this->createMock(ProcessorInterface::class);
-
-        $processor = new DownloadJobQueuedProcessor(
-            $persistProcessor,
-            $messengerProcessor,
-            $this->logger,
-            $this->downloaderFactory,
-            $this->cache
-        );
-
-        $result = $processor->process($dto, $operation);
+        $result = $this->processor->process($dto, $operation);
 
         // Verify auto-selection worked
         $this->assertIsString($result->getJobUuid());
@@ -225,21 +213,10 @@ class DownloadWorkflowIntegrationTest extends TestCase
         $this->cache->expects($this->once())
             ->method('invalidateTags');
 
-        $persistProcessor = $this->createMock(ProcessorInterface::class);
-        $messengerProcessor = $this->createMock(ProcessorInterface::class);
-
-        $processor = new DownloadJobQueuedProcessor(
-            $persistProcessor,
-            $messengerProcessor,
-            $this->logger,
-            $this->downloaderFactory,
-            $this->cache
-        );
-
         $this->expectException(\Symfony\Component\HttpFoundation\Exception\BadRequestException::class);
         $this->expectExceptionMessage('No downloader found for the given URI');
 
-        $processor->process($dto, $operation);
+        $this->processor->process($dto, $operation);
     }
 
     public function testWorkflowWithDownloadFailure(): void
@@ -306,21 +283,10 @@ class DownloadWorkflowIntegrationTest extends TestCase
 
         $operation = $this->createMock(Operation::class);
 
-        $persistProcessor = $this->createMock(ProcessorInterface::class);
-        $messengerProcessor = $this->createMock(ProcessorInterface::class);
-
-        $processor = new DownloadJobQueuedProcessor(
-            $persistProcessor,
-            $messengerProcessor,
-            $this->logger,
-            $this->downloaderFactory,
-            $this->cache
-        );
-
         $this->expectException(\Symfony\Component\HttpFoundation\Exception\BadRequestException::class);
         $this->expectExceptionMessage('Invalid downloader specified');
 
-        $processor->process($dto, $operation);
+        $this->processor->process($dto, $operation);
     }
 
     public function testWorkflowMaintainsJobState(): void
@@ -333,8 +299,7 @@ class DownloadWorkflowIntegrationTest extends TestCase
         $operation = $this->createMock(Operation::class);
 
         $job = null;
-        $persistProcessor = $this->createMock(ProcessorInterface::class);
-        $persistProcessor->method('process')
+        $this->persistProcessor->method('process')
             ->willReturnCallback(function (DownloadJob $downloadJob) use (&$job) {
                 $job = $downloadJob;
                 $reflection = new \ReflectionClass($job);
@@ -345,17 +310,7 @@ class DownloadWorkflowIntegrationTest extends TestCase
                 return $job;
             });
 
-        $messengerProcessor = $this->createMock(ProcessorInterface::class);
-
-        $processor = new DownloadJobQueuedProcessor(
-            $persistProcessor,
-            $messengerProcessor,
-            $this->logger,
-            $this->downloaderFactory,
-            $this->cache
-        );
-
-        $processor->process($dto, $operation);
+        $this->processor->process($dto, $operation);
 
         // Verify initial state
         $this->assertSame(DownloadStateEnum::PENDING, $job->getState());

@@ -10,11 +10,13 @@ use App\Entity\DownloadJob;
 use App\Enum\DownloadStateEnum;
 use App\Enum\JobTypeEnum;
 use App\Factory\DownloaderFactory;
+use App\Repository\OidcSubjectIdentifierRepository;
 use App\Service\Downloader\DownloaderInterface;
 use App\State\DownloadJobQueuedProcessor;
 use GuzzleHttp\Psr7\Uri;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\Exception\BadRequestException;
 use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
@@ -28,6 +30,8 @@ class DownloadJobQueuedProcessorTest extends TestCase
     private LoggerInterface $logger;
     private TagAwareCacheInterface $cache;
     private Operation $operation;
+    private Security $security;
+    private OidcSubjectIdentifierRepository $oidcSubjectIdentifierRepository;
 
     protected function setUp(): void
     {
@@ -37,13 +41,17 @@ class DownloadJobQueuedProcessorTest extends TestCase
         $this->logger = $this->createMock(LoggerInterface::class);
         $this->cache = $this->createMock(TagAwareCacheInterface::class);
         $this->operation = $this->createMock(Operation::class);
+        $this->security = $this->createMock(Security::class);
+        $this->oidcSubjectIdentifierRepository = $this->createMock(OidcSubjectIdentifierRepository::class);
 
         $this->processor = new DownloadJobQueuedProcessor(
             $this->persistProcessor,
             $this->messengerProcessor,
             $this->logger,
             $this->downloaderFactory,
-            $this->cache
+            $this->cache,
+            $this->security,
+            $this->oidcSubjectIdentifierRepository
         );
     }
 
