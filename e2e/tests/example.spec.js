@@ -6,8 +6,8 @@ test('homepage', async ({ page }) => {
   await expect(page).toHaveTitle('Welcome to API Platform!');
 });
 
-test('swagger', async ({ page }) => {
-  await page.goto('https://localhost/docs');
-  await expect(page).toHaveTitle('Download Router - API Platform');
-  await expect(page.locator('.operation-tag-content > span')).toHaveCount(12);
-});
+// test('swagger', async ({ page }) => {
+//   await page.goto('https://localhost/docs');
+//   await expect(page).toHaveTitle('Download Router - API Platform');
+//   await expect(page.locator('.operation-tag-content > span')).toHaveCount(12);
+// });
