@@ -32,6 +32,10 @@ class OidcUserProvider implements AttributesBasedUserProviderInterface
             $roles = array_values(array_unique(array_merge($roles, $groupRoles)));
         }
 
+        // Always add ROLE_USER to ensure every authenticated user has at least this role
+        $roles[] = 'ROLE_USER';
+        $roles = array_values(array_unique($roles));
+
         return new OidcUser(
             issuer: $issuer,
             sub: $sub,
