@@ -10,12 +10,13 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 class WellKnownControllerTest extends TestCase
 {
     private const CLIENT_ID = 'test-client-id';
+    private const VERSION = 'dev';
     private WellKnownController $controller;
     private UrlGeneratorInterface $urlGenerator;
 
     protected function setUp(): void
     {
-        $this->controller = new WellKnownController(self::CLIENT_ID);
+        $this->controller = new WellKnownController(self::CLIENT_ID, self::VERSION);
         $this->urlGenerator = $this->createMock(UrlGeneratorInterface::class);
         $container = $this->createMock(\Symfony\Component\DependencyInjection\ContainerInterface::class);
         $container->method('has')->willReturnCallback(fn (string $id) => 'router' === $id);
