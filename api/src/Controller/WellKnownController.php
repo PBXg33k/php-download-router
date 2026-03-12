@@ -21,6 +21,8 @@ final class WellKnownController extends AbstractController
     public function __construct(
         #[Autowire('%oidc.client_id%')]
         private string $clientId,
+        #[Autowire('%app.version%')]
+        private string $appVersion
     ) {
     }
 
@@ -49,7 +51,7 @@ final class WellKnownController extends AbstractController
                     ),
                     'scopes' => self::SCOPES,
                 ],
-                'version' => Version::getVersion(),
+                'version' => $this->appVersion,
             ]
         );
     }

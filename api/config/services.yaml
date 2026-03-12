@@ -41,6 +41,9 @@ parameters:
     oidc_defaults_issuer: '0'
     oidc_defaults_discovery_base_uri: '0'
 
+    app_version_default: 'dev'
+    app.version: '%env(default:app_version_default:APP_VERSION)%'
+
 services:
     # default configuration for services in *this* file
     _defaults:
