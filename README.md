@@ -14,12 +14,21 @@ It routes download requests to the following backends based on their supported d
 
 More to be added in the future.
 
+## Companion Extensions
+
+I'm working on a companion (browser) extension for this API.
+This extension allows you to interact with the API directly from your browser,
+making it easier to manage the downloads and send links to the API.
+
+It will be released for Firefox and Chrome soon.
+
+At the time of writing this, the extension is still in development and not yet published to the browser stores.
+
 ## Features
 - Download files from various platforms using a single API
 - Support for multiple backends
   - yt-dlp 
   - gallery-dl
-  - [gallery-dl-server](https://github.com/qx6ghqkz/gallery-dl-server)
   - mock backend for testing
 - Asynchronous processing of download (depending on number of workers)
 - Auto upgrade CLI downloaders
@@ -34,7 +43,7 @@ More to be added in the future.
 
 ### Future Plans (in no particular order)
 - [ ] Add more backends for different platforms
-- [ ] Implement authentication and authorization
+- [x] Implement authentication and authorization (OAuth2)
 - [ ] Add support for scheduling downloads
 - [ ] Add support for monitoring URLS (periodic checks for new content)
 - [ ] Implement retry mechanism for failed downloads
