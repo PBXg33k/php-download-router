@@ -314,7 +314,7 @@ final class AuthController extends AbstractController
      * @return Response
      */
     #[Route('/auth/token', name: 'app_auth_token', methods: ['POST'])]
-    public function tokenProxy(Request $request): Response
+    public function tokenProxy(Request $request): JsonResponse
     {
         $refreshToken = $request->request->get('refresh_token');
 
@@ -356,7 +356,15 @@ final class AuthController extends AbstractController
             unset($headers['content-length']);
         }
 
-        return new Response($response->getContent(false), $response->getStatusCode(), $headers);
+        try {
+            $decodedContent = json_decode($response->getContent(false), true);
+            return new JsonResponse($decodedContent, $response->getStatusCode(), $headers);
+        } catch (\Exception $e) {
+            return new JsonResponse(
+                new ErrorResponse('Failed to decode JSON response'),
+                Response::HTTP_INTERNAL_SERVER_ERROR
+            );
+        }
     }
 
     private function getTokenEndpoint(): ?string
