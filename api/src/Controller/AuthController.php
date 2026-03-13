@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Response\ErrorResponse;
 use Psr\Cache\CacheItemPoolInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -231,16 +232,22 @@ final class AuthController extends AbstractController
     }
 
     #[Route('/auth/code-to-token', name: 'app_auth_code_to_token', methods: ['POST'])]
-    public function codeToToken(Request $request): Response
+    public function codeToToken(Request $request): JsonResponse
     {
         $contentType = (string) $request->headers->get('Content-Type', '');
         if ('json' !== $request->getContentTypeFormat() || !str_contains($contentType, 'application/json')) {
-            return new Response('Invalid content type', Response::HTTP_BAD_REQUEST);
+            return new JsonResponse(
+                new ErrorResponse('Invalid content type'),
+                Response::HTTP_BAD_REQUEST
+            );
         }
 
         $body = json_decode($request->getContent(), true);
         if (json_last_error() !== JSON_ERROR_NONE) {
-            return new Response('Invalid JSON body', Response::HTTP_BAD_REQUEST);
+            return new JsonResponse(
+                new ErrorResponse('Invalid JSON body'),
+                Response::HTTP_BAD_REQUEST
+            );
         }
 
         // get `code` and `code_verifier` from the request
@@ -250,13 +257,19 @@ final class AuthController extends AbstractController
 
         // Make sure all required parameters are present
         if (!$code || !$codeVerifier || !$redirectUri) {
-            return new Response('Missing required parameters', Response::HTTP_BAD_REQUEST);
+            return new JsonResponse(
+                new ErrorResponse('Missing required parameters'),
+                Response::HTTP_BAD_REQUEST
+            );
         }
 
         // Get the token endpoint from the well-known URL
         $tokenEndpoint = $this->getTokenEndpoint();
         if (!$tokenEndpoint) {
-            return new Response('Token endpoint not found', Response::HTTP_INTERNAL_SERVER_ERROR);
+            return new JsonResponse(
+                new ErrorResponse('Token endpoint not found'),
+                Response::HTTP_INTERNAL_SERVER_ERROR
+            );
         }
 
         $response = $this->httpClient->request('POST', $tokenEndpoint, [
@@ -281,10 +294,13 @@ final class AuthController extends AbstractController
         $decodedContent = json_decode($response->getContent(), true);
         if (json_last_error() !== JSON_ERROR_NONE) {
             $this->logger->error('Failed to decode token endpoint response', ['error' => json_last_error_msg()]);
-            return new Response('Failed to decode token endpoint response', Response::HTTP_INTERNAL_SERVER_ERROR);
+            return new JsonResponse(
+                new ErrorResponse('Failed to decode token endpoint response'),
+                Response::HTTP_INTERNAL_SERVER_ERROR
+            );
         }
 
-        return new JsonResponse($decodedContent);
+        return new JsonResponse($decodedContent, $response->getStatusCode());
     }
 
     /**
@@ -303,12 +319,17 @@ final class AuthController extends AbstractController
         $refreshToken = $request->request->get('refresh_token');
 
         if (!$refreshToken) {
-            return new Response('Missing refresh_token parameter', Response::HTTP_BAD_REQUEST);
+            return new JsonResponse(
+                new ErrorResponse('Missing refresh_token parameter'),
+                Response::HTTP_BAD_REQUEST
+            );
         }
 
         $tokenEndpoint = $this->getTokenEndpoint();
         if (!$tokenEndpoint) {
-            return new Response('Token endpoint not found', Response::HTTP_INTERNAL_SERVER_ERROR);
+            return new JsonResponse(
+                new ErrorResponse('Token endpoint not found'),
+                Response::HTTP_INTERNAL_SERVER_ERROR);
         }
 
         $response = $this->httpClient->request('POST', $tokenEndpoint, [
@@ -327,7 +348,7 @@ final class AuthController extends AbstractController
             ]
         );
 
-        $headers = $response->getHeaders();
+        $headers = $response->getHeaders(false);
 
         // remove the content length header if it exists
         // It triggers an error in Caddy
@@ -335,7 +356,7 @@ final class AuthController extends AbstractController
             unset($headers['content-length']);
         }
 
-        return new Response($response->getContent(), $response->getStatusCode(), $headers);
+        return new Response($response->getContent(false), $response->getStatusCode(), $headers);
     }
 
     private function getTokenEndpoint(): ?string
