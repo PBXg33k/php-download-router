@@ -51,12 +51,8 @@ const authProvider: OAuthProvider = {
       });
     }
 
-    console.log("Checking authentication with token:", token);
-
     try {
       const jwt: any = getProfileFromToken(token);
-
-      console.log("Decoded JWT:", jwt);
 
       const exp = jwt?.exp;
       const now = Date.now();
@@ -90,8 +86,6 @@ const authProvider: OAuthProvider = {
   refreshToken: async () => {
     const existingToken = localStorage.getItem("token");
 
-    console.log("Existing token:", existingToken);
-
     if (!existingToken) {
       return Promise.reject({
         redirectToLogin: true,
@@ -115,13 +109,6 @@ const authProvider: OAuthProvider = {
       console.log(
         `Token expiration: ${new Date(exp * 1000).toLocaleString()}, Current time: ${new Date(now).toLocaleString()}`
       );
-      console.log([
-        'parsedToken:', parsedToken,
-        'jwt:', jwt,
-        'exp:', exp * 1000,
-        'now:', now,
-        'expired:', now > exp * 1000
-      ]);
 
       if (now > exp * 1000) {
         const response = await fetch(`${apiUri}/auth/token`, {
