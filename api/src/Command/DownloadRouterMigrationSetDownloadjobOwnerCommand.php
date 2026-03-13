@@ -21,6 +21,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 )]
 class DownloadRouterMigrationSetDownloadjobOwnerCommand extends Command
 {
+    private SymfonyStyle $io;
     public function __construct(
         private DownloadJobRepository $downloadJobRepository,
         private OidcSubjectIdentifierRepository $oidcSubjectIdentifierRepository,
@@ -35,7 +36,6 @@ class DownloadRouterMigrationSetDownloadjobOwnerCommand extends Command
     {
         $this
             ->addArgument('owner-sub', InputArgument::OPTIONAL, 'The OidcSubject of the owner')
-            ->addOption('non-interactive', null, InputOption::VALUE_NONE, 'Do not ask for confirmation')
             ->addOption('dry-run', null, InputOption::VALUE_NONE, 'Dry run, do not actually change anything')
         ;
     }
@@ -43,50 +43,54 @@ class DownloadRouterMigrationSetDownloadjobOwnerCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $ownerSub = $input->getArgument('owner-sub');
-        $nonInteractive = $input->getOption('non-interactive');
         $dryRun = $input->getOption('dry-run');
 
 
-        $io = new SymfonyStyle($input, $output);
+        $this->io = new SymfonyStyle($input, $output);
 
         if ($ownerSub) {
             $ownerSub = $this->oidcSubjectIdentifierRepository->findOneBy(['subject' => $ownerSub]);
             if (!$ownerSub) {
                 throw new \RuntimeException('Owner sub not found');
             }
+            $this->setOwnerOnDownloadJobs($ownerSub, $dryRun);
         } else {
-            if (!$nonInteractive) {
-                $ownerSubs = $this->oidcSubjectIdentifierRepository->findAll();
+            $ownerSubs = $this->oidcSubjectIdentifierRepository->findAll();
 
-                $choices = array_map(fn ($s) => $s->getSubject(), $ownerSubs);
-                $ownerSub = $io->choice('Select owner sub', $choices);
-                if (!$ownerSub) {
-                    throw new \RuntimeException('Owner sub not selected');
-                }
+            $choices = array_map(fn($s) => $s->getSubject(), $ownerSubs);
+            $ownerSub = $this->io->choice('Select owner sub', $choices);
+            if (!$ownerSub) {
+                throw new \RuntimeException('Owner sub not selected');
+            }
 
-                if($selectedOwnerSub = array_filter($ownerSubs, fn ($s) => $s->getSubject() === $ownerSub)) {
-                    $ownerSub = array_shift($selectedOwnerSub);
+            if ($selectedOwnerSub = array_filter($ownerSubs, fn($s) => $s->getSubject() === $ownerSub)) {
+                $ownerSub = array_shift($selectedOwnerSub);
 
-                    $this->setOwnerOnDownloadJobs($ownerSub);
-                }
+                $this->setOwnerOnDownloadJobs($ownerSub, $dryRun);
             }
         }
 
         return Command::SUCCESS;
     }
 
-    private function setOwnerOnDownloadJobs(OidcSubjectIdentifier $owner) {
+    private function setOwnerOnDownloadJobs(OidcSubjectIdentifier $owner, bool $dryRun = false) {
         $this->logger->debug('Setting owner on download jobs', ['owner' => $owner->getSubject()]);
         $downloadJobs = $this->downloadJobRepository->findBy(['owner' => null]);
 
         foreach ($downloadJobs as $downloadJob) {
             $this->logger->debug('Setting owner on download job', ['downloadJobId' => $downloadJob->getId(), 'owner' => $owner->getSubject()]);
             $downloadJob->setOwner($owner);
-            $this->entityManager->persist($downloadJob);
+            if (!$dryRun) {
+                $this->entityManager->persist($downloadJob);
+            } else {
+                $this->io->note(sprintf('Would set owner %s on download job %s', $owner->getSubject(), $downloadJob->getId()));
+            }
         }
 
 
-        $this->logger->debug('Flushing changes');
-        $this->entityManager->flush();
+        if(!$dryRun) {
+            $this->logger->debug('Flushing changes');
+            $this->entityManager->flush();
+        }
     }
 }
