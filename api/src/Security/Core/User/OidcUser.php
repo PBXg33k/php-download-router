@@ -7,7 +7,7 @@ use Symfony\Component\Security\Core\User\UserInterface;
 class OidcUser implements UserInterface
 {
     public function __construct(
-        private readonly string       $issuer,
+        private readonly string  $issuer,
         private readonly string  $sub,
         private readonly string  $name = '',
         private readonly string  $givenName = '',
@@ -33,13 +33,6 @@ class OidcUser implements UserInterface
 
     public function getUserIdentifier(): string
     {
-//        if ('' !== trim($this->nickName)) {
-//            return $this->nickName;
-//        }
-//        if (null !== $this->email && '' !== trim($this->email)) {
-//            return $this->email;
-//        }
-
         // As per OpenID spec always return sub, as this is a local unique AND NEVER REASSIGNED identifier
         // within the Issuer
         // @see https://openid.net/specs/openid-connect-core-1_0.html#IDToken

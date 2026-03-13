@@ -28,6 +28,10 @@ class OidcUserProvider implements AttributesBasedUserProviderInterface
         $preferredUsername = $attributes['preferred_username'] ?? null;
         $roles = $attributes['roles'] ?? ['ROLE_USER'];
 
+        // Roles must start with ROLE_ and be uppercase
+        // Prepend ROLE_ if it doesn't exist
+        $roles = array_map(fn ($role) => strtoupper(str_starts_with($role, 'ROLE_') ? $role : 'ROLE_'.$role), $roles);
+
         // For OIDC providers (e.g. authentik) that expose a "groups" claim, convert group names from "Group Name" to "ROLE_GROUP_NAME"
         if (isset($attributes['groups']) && is_array($attributes['groups'])) {
             $groupRoles = array_map(
