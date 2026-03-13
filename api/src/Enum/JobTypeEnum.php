@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Enum;
+
 enum JobTypeEnum
 {
     case DOWNLOAD;

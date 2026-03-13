@@ -121,7 +121,7 @@ class MockDownloaderTest extends TestCase
     }
 
     /**
-     * Test that the mock downloader doesn't change based on URI content
+     * Test that the mock downloader doesn't change based on URI content.
      */
     public function testDownloadDoesNotDependOnUriContent(): void
     {
@@ -136,7 +136,7 @@ class MockDownloaderTest extends TestCase
     }
 
     /**
-     * Test edge cases for domain matching
+     * Test edge cases for domain matching.
      */
     public function testDomainMatchingEdgeCases(): void
     {

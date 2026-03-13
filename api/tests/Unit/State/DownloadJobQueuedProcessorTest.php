@@ -4,18 +4,19 @@ namespace App\Tests\Unit\State;
 
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
-use ApiPlatform\Symfony\Messenger\Processor as MessengerProcessor;
 use App\Dto\DownloadJobDTO;
 use App\Dto\JobAcceptedDTO;
 use App\Entity\DownloadJob;
 use App\Enum\DownloadStateEnum;
 use App\Enum\JobTypeEnum;
 use App\Factory\DownloaderFactory;
+use App\Repository\OidcSubjectIdentifierRepository;
 use App\Service\Downloader\DownloaderInterface;
 use App\State\DownloadJobQueuedProcessor;
 use GuzzleHttp\Psr7\Uri;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\Exception\BadRequestException;
 use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
@@ -29,6 +30,8 @@ class DownloadJobQueuedProcessorTest extends TestCase
     private LoggerInterface $logger;
     private TagAwareCacheInterface $cache;
     private Operation $operation;
+    private Security $security;
+    private OidcSubjectIdentifierRepository $oidcSubjectIdentifierRepository;
 
     protected function setUp(): void
     {
@@ -38,13 +41,17 @@ class DownloadJobQueuedProcessorTest extends TestCase
         $this->logger = $this->createMock(LoggerInterface::class);
         $this->cache = $this->createMock(TagAwareCacheInterface::class);
         $this->operation = $this->createMock(Operation::class);
+        $this->security = $this->createMock(Security::class);
+        $this->oidcSubjectIdentifierRepository = $this->createMock(OidcSubjectIdentifierRepository::class);
 
         $this->processor = new DownloadJobQueuedProcessor(
             $this->persistProcessor,
             $this->messengerProcessor,
             $this->logger,
             $this->downloaderFactory,
-            $this->cache
+            $this->cache,
+            $this->security,
+            $this->oidcSubjectIdentifierRepository
         );
     }
 
@@ -65,11 +72,11 @@ class DownloadJobQueuedProcessorTest extends TestCase
             ->method('process')
             ->with(
                 $this->callback(function (DownloadJob $job) {
-                    return $job->getUri() === 'https://example.com/test.zip'
-                        && $job->getDownloader() === 'mock'
-                        && $job->getUserAgent() === 'TestAgent/1.0'
+                    return 'https://example.com/test.zip' === $job->getUri()
+                        && 'mock' === $job->getDownloader()
+                        && 'TestAgent/1.0' === $job->getUserAgent()
                         && $job->getCookies() === ['session' => 'abc123']
-                        && $job->getState() === DownloadStateEnum::PENDING;
+                        && DownloadStateEnum::PENDING === $job->getState();
                 }),
                 $this->operation,
                 [],
@@ -81,6 +88,7 @@ class DownloadJobQueuedProcessorTest extends TestCase
                 $idProperty = $reflection->getProperty('id');
 
                 $idProperty->setValue($job, 123);
+
                 return $job;
             });
 
@@ -140,6 +148,7 @@ class DownloadJobQueuedProcessorTest extends TestCase
                 $idProperty = $reflection->getProperty('id');
 
                 $idProperty->setValue($job, 456);
+
                 return $job;
             });
 
@@ -170,13 +179,13 @@ class DownloadJobQueuedProcessorTest extends TestCase
                 $item->expects($this->atLeastOnce())->method('expiresAfter');
                 $item->expects($this->once())->method('tag')->with([
                     'dlsupport',
-                    'dlsupport_example.com'
+                    'dlsupport_example.com',
                 ]);
 
                 $this->downloaderFactory->expects($this->once())
                     ->method('getDownloadersByUri')
                     ->with($this->callback(function (Uri $uri) {
-                        return $uri->getHost() === 'example.com';
+                        return 'example.com' === $uri->getHost();
                     }))
                     ->willReturn([$mockDownloader]);
 
@@ -192,6 +201,7 @@ class DownloadJobQueuedProcessorTest extends TestCase
                 $idProperty = $reflection->getProperty('id');
 
                 $idProperty->setValue($job, 789);
+
                 return $job;
             });
 
@@ -273,11 +283,11 @@ class DownloadJobQueuedProcessorTest extends TestCase
             ->method('process')
             ->with(
                 $this->callback(function (DownloadJob $job) {
-                    return $job->getUri() === 'https://example.com/minimal.zip'
-                        && $job->getDownloader() === 'mock'
-                        && $job->getUserAgent() === null
-                        && $job->getCookies() === null
-                        && $job->getState() === DownloadStateEnum::PENDING;
+                    return 'https://example.com/minimal.zip' === $job->getUri()
+                        && 'mock' === $job->getDownloader()
+                        && null === $job->getUserAgent()
+                        && null === $job->getCookies()
+                        && DownloadStateEnum::PENDING === $job->getState();
                 })
             )
             ->willReturnCallback(function (DownloadJob $job) {
@@ -286,6 +296,7 @@ class DownloadJobQueuedProcessorTest extends TestCase
                 $idProperty = $reflection->getProperty('id');
 
                 $idProperty->setValue($job, 999);
+
                 return $job;
             });
 
@@ -323,6 +334,7 @@ class DownloadJobQueuedProcessorTest extends TestCase
                 $idProperty = $reflection->getProperty('id');
 
                 $idProperty->setValue($job, 1);
+
                 return $job;
             });
 

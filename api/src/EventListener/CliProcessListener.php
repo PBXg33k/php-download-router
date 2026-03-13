@@ -14,10 +14,9 @@ class CliProcessListener
     private const TOPIC = 'https://example.com/downloadjobs/{id}/process';
 
     public function __construct(
-        private readonly HubInterface    $hub,
+        private readonly HubInterface $hub,
         private readonly LoggerInterface $logger,
-    )
-    {
+    ) {
     }
 
     #[AsEventListener(event: CliProcessStdOutputEvent::class)]

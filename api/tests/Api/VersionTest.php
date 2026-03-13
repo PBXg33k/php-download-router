@@ -87,7 +87,7 @@ class VersionTest extends ApiTestCase
         // Find the mock downloader in the collection
         $mockFound = false;
         foreach ($data['member'] as $version) {
-            if ($version['id'] === 'mock') {
+            if ('mock' === $version['id']) {
                 $mockFound = true;
                 // Verify latestVersion is correctly populated from downloader
                 $this->assertArrayHasKey('latestVersion', $version);

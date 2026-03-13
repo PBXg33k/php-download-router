@@ -16,7 +16,6 @@ use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcher;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 class DownloadJobHandlerEventTest extends TestCase
 {
@@ -103,14 +102,14 @@ class DownloadJobHandlerEventTest extends TestCase
         $this->handler->__invoke($downloadJob);
 
         // Verify JobPickedUpEvent was dispatched
-        $pickedUpEvents = array_filter($this->dispatchedEvents, fn($event) => $event instanceof JobPickedUpEvent);
+        $pickedUpEvents = array_filter($this->dispatchedEvents, fn ($event) => $event instanceof JobPickedUpEvent);
         $this->assertCount(1, $pickedUpEvents);
 
         $pickedUpEvent = array_shift($pickedUpEvents);
         $this->assertSame($downloadJob, $pickedUpEvent->getDownloadJob());
 
         // Verify JobCompletedEvent was also dispatched
-        $completedEvents = array_filter($this->dispatchedEvents, fn($event) => $event instanceof JobCompletedEvent);
+        $completedEvents = array_filter($this->dispatchedEvents, fn ($event) => $event instanceof JobCompletedEvent);
         $this->assertCount(1, $completedEvents);
     }
 
@@ -151,7 +150,7 @@ class DownloadJobHandlerEventTest extends TestCase
         $this->handler->__invoke($downloadJob);
 
         // Verify JobUpdateEvent was dispatched
-        $updateEvents = array_filter($this->dispatchedEvents, fn($event) => $event instanceof JobUpdateEvent);
+        $updateEvents = array_filter($this->dispatchedEvents, fn ($event) => $event instanceof JobUpdateEvent);
         $this->assertCount(1, $updateEvents);
 
         $updateEvent = array_shift($updateEvents);
@@ -202,7 +201,7 @@ class DownloadJobHandlerEventTest extends TestCase
         $this->handler->__invoke($downloadJob);
 
         // Verify JobFailedEvent was dispatched
-        $failedEvents = array_filter($this->dispatchedEvents, fn($event) => $event instanceof JobFailedEvent);
+        $failedEvents = array_filter($this->dispatchedEvents, fn ($event) => $event instanceof JobFailedEvent);
         $this->assertCount(1, $failedEvents);
 
         $failedEvent = array_shift($failedEvents);
@@ -216,6 +215,7 @@ class DownloadJobHandlerEventTest extends TestCase
         $downloader = $this->createMock(DownloaderInterface::class);
         $downloader->method('getIdentifier')->willReturn('mock');
         $downloader->method('download')->willReturn(true);
+
         return $downloader;
     }
 
@@ -224,6 +224,7 @@ class DownloadJobHandlerEventTest extends TestCase
         $downloader = $this->createMock(DownloaderInterface::class);
         $downloader->method('getIdentifier')->willReturn('mock');
         $downloader->method('download')->willThrowException($exception);
+
         return $downloader;
     }
 }

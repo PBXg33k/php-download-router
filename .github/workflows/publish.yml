@@ -63,3 +63,5 @@ jobs:
                   pwa.cache-from=type=gha,scope=pwa-${{github.ref}}
                   pwa.cache-from=type=gha,scope=pwa-refs/heads/main
                   pwa.cache-to=type=gha,scope=pwa-${{github.ref}},mode=max
+                  php.args.APP_VERSION=${{ steps.meta.outputs.version }}
+                  pwa.args.APP_VERSION=${{ steps.meta.outputs.version }}

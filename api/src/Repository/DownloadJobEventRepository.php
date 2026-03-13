@@ -15,5 +15,4 @@ class DownloadJobEventRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, DownloadJobEvent::class);
     }
-
 }

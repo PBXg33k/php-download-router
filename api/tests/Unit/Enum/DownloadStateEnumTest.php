@@ -81,7 +81,7 @@ class DownloadStateEnumTest extends TestCase
     }
 
     /**
-     * Test state progression logic (conceptual)
+     * Test state progression logic (conceptual).
      */
     public function testStateProgression(): void
     {
@@ -89,7 +89,7 @@ class DownloadStateEnumTest extends TestCase
         $states = [
             DownloadStateEnum::PENDING,
             DownloadStateEnum::IN_PROGRESS,
-            DownloadStateEnum::COMPLETED
+            DownloadStateEnum::COMPLETED,
         ];
 
         foreach ($states as $index => $state) {

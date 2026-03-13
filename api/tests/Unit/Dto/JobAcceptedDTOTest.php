@@ -19,7 +19,7 @@ class JobAcceptedDTOTest extends TestCase
     {
         $uuid = '6ba7b810-9dad-11d1-80b4-00c04fd430c8';
         $result = $this->dto->setJobUuid($uuid);
-        
+
         $this->assertSame($this->dto, $result);
         $this->assertSame($uuid, $this->dto->getJobUuid());
     }
@@ -28,7 +28,7 @@ class JobAcceptedDTOTest extends TestCase
     {
         $token = 'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890';
         $result = $this->dto->setToken($token);
-        
+
         $this->assertSame($this->dto, $result);
         $this->assertSame($token, $this->dto->getToken());
     }
@@ -36,7 +36,7 @@ class JobAcceptedDTOTest extends TestCase
     public function testJobTypeGettersAndSetters(): void
     {
         $result = $this->dto->setJobType(JobTypeEnum::DOWNLOAD);
-        
+
         $this->assertSame($this->dto, $result);
         $this->assertSame(JobTypeEnum::DOWNLOAD, $this->dto->getJobType());
     }
@@ -44,9 +44,9 @@ class JobAcceptedDTOTest extends TestCase
     public function testStatusGettersAndSetters(): void
     {
         $this->assertSame('Accepted', $this->dto->getStatus());
-        
+
         $result = $this->dto->setStatus('Processing');
-        
+
         $this->assertSame($this->dto, $result);
         $this->assertSame('Processing', $this->dto->getStatus());
     }
@@ -54,9 +54,9 @@ class JobAcceptedDTOTest extends TestCase
     public function testMessageGettersAndSetters(): void
     {
         $this->assertSame('Your job has been accepted and is being processed.', $this->dto->getMessage());
-        
+
         $result = $this->dto->setMessage('Custom message');
-        
+
         $this->assertSame($this->dto, $result);
         $this->assertSame('Custom message', $this->dto->getMessage());
     }
@@ -65,12 +65,12 @@ class JobAcceptedDTOTest extends TestCase
     {
         $uuid = '6ba7b810-9dad-11d1-80b4-00c04fd430c8';
         $token = 'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890';
-        
+
         $result = $this->dto
             ->setJobUuid($uuid)
             ->setToken($token)
             ->setJobType(JobTypeEnum::DOWNLOAD);
-        
+
         $this->assertSame($this->dto, $result);
         $this->assertSame($uuid, $this->dto->getJobUuid());
         $this->assertSame($token, $this->dto->getToken());
@@ -100,7 +100,7 @@ class JobAcceptedDTOTest extends TestCase
     public function testInitialState(): void
     {
         $dto = new JobAcceptedDTO();
-        
+
         $this->assertSame('Accepted', $dto->getStatus());
         $this->assertSame('Your job has been accepted and is being processed.', $dto->getMessage());
     }
@@ -110,12 +110,12 @@ class JobAcceptedDTOTest extends TestCase
         $dto = new JobAcceptedDTO();
         $uuid = '6ba7b810-9dad-11d1-80b4-00c04fd430c8';
         $token = 'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890';
-        
+
         // Simulate typical usage
         $dto->setJobUuid($uuid)
             ->setToken($token)
             ->setJobType(JobTypeEnum::DOWNLOAD);
-        
+
         // Verify final state
         $this->assertSame($uuid, $dto->getJobUuid());
         $this->assertSame($token, $dto->getToken());

@@ -45,6 +45,9 @@ test:
 integration:
 	docker run --network host -w /app -v ./e2e:/app --rm --ipc=host mcr.microsoft.com/playwright:v1.50.0-noble /bin/sh -c 'npm i; npx playwright test;'
 
+bake:
+	$(DOCKER_COMPOSE_PREFIX) docker buildx bake --file compose.yaml --file compose.prod.yaml --file ./docker-bake.hcl
+
 # Run command in the php container (ie: bin/console doctrine:migrations:migrate)
 Arguments := $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
 

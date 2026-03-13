@@ -20,6 +20,7 @@ class JobAcceptedDTO
     public function setStatus(string $status): JobAcceptedDTO
     {
         $this->status = $status;
+
         return $this;
     }
 
@@ -31,6 +32,7 @@ class JobAcceptedDTO
     public function setJobUuid(string $jobUuid): JobAcceptedDTO
     {
         $this->jobUuid = $jobUuid;
+
         return $this;
     }
 
@@ -42,6 +44,7 @@ class JobAcceptedDTO
     public function setToken(string $token): JobAcceptedDTO
     {
         $this->token = $token;
+
         return $this;
     }
 
@@ -53,6 +56,7 @@ class JobAcceptedDTO
     public function setJobType(JobTypeEnum $jobType): JobAcceptedDTO
     {
         $this->jobType = $jobType;
+
         return $this;
     }
 
@@ -64,8 +68,7 @@ class JobAcceptedDTO
     public function setMessage(string $message): JobAcceptedDTO
     {
         $this->message = $message;
+
         return $this;
     }
-
-
 }

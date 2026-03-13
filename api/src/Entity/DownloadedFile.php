@@ -25,7 +25,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
             toProperty: 'downloadJob',
             fromClass: DownloadJob::class,
             identifiers: ['uuid'],
-        )
+        ),
     ],
     stateOptions: new Options(
         handleLinks: [self::class, 'handleLinks'],
@@ -65,9 +65,9 @@ class DownloadedFile
     public static function handleLinks(QueryBuilder $queryBuilder, array $uriVariables, QueryNameGeneratorInterface $queryNameGenerator): void
     {
         $queryBuilder
-            ->join($queryBuilder->getRootAliases()[0] . '.downloadJob', 'download_job')
+            ->join($queryBuilder->getRootAliases()[0].'.downloadJob', 'download_job')
             ->andWhere('download_job.uuid = :downloadJob')
-            ->andWhere($queryBuilder->getRootAliases()[0] . '.visible = true')
+            ->andWhere($queryBuilder->getRootAliases()[0].'.visible = true')
             ->setParameter('downloadJob', $uriVariables['downloadJobUuid']);
     }
 
@@ -133,7 +133,7 @@ class DownloadedFile
     public function getDownloadUri(): ?string
     {
         // /downloads/{downloadJobId}/files/{downloadedFileId}/{token}/download
-        return '/download/' . $this->getDownloadJob()->first()->getUuid() . '/' . $this->getDownloadJob()->first()->getToken() . '/files/' . $this->getId();
+        return '/download/'.$this->getDownloadJob()->first()->getUuid().'/'.$this->getDownloadJob()->first()->getToken().'/files/'.$this->getId();
     }
 
     /**

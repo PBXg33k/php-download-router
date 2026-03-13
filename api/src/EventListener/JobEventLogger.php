@@ -18,10 +18,9 @@ use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 class JobEventLogger
 {
     public function __construct(
-        private LoggerInterface        $logger,
-        private EntityManagerInterface $entityManager
-    )
-    {
+        private LoggerInterface $logger,
+        private EntityManagerInterface $entityManager,
+    ) {
     }
 
     #[AsEventListener(event: JobPickedUpEvent::class)]
@@ -36,7 +35,7 @@ class JobEventLogger
             'job_id' => $event->getDownloadJob()->getId(),
             'uri' => $event->getDownloadJob()->getUri(),
             'worker_identifier' => $event->getWorkerIdentifier(),
-            'event' => $jobEvent->getEvent()
+            'event' => $jobEvent->getEvent(),
         ]);
 
         $this->storeDownloadJobEvent($jobEvent);
@@ -57,7 +56,7 @@ class JobEventLogger
             'uri' => $event->getDownloadJob()->getUri(),
             'update_message' => $event->getUpdateMessage(),
             'context' => $event->getContext(),
-            'event' => 'job.update'
+            'event' => 'job.update',
         ]);
 
         $jobEvent = new DownloadJobEvent()
@@ -66,7 +65,6 @@ class JobEventLogger
             ->setSource('listener')
             ->setUpdateMessage($event->getUpdateMessage())
             ->setContext($event->getContext() ?: null);
-
 
         $this->storeDownloadJobEvent($jobEvent);
     }
@@ -84,7 +82,7 @@ class JobEventLogger
             'job_id' => $event->getDownloadJob()->getId(),
             'uri' => $event->getDownloadJob()->getUri(),
             'metadata' => $event->getMetadata(),
-            'event' => 'job.completed'
+            'event' => 'job.completed',
         ]);
 
         $this->storeDownloadJobEvent($jobEvent);
@@ -101,7 +99,7 @@ class JobEventLogger
             ->setContext($event->getContext() ?: null)
             ->setMetadata($event->getException() ? [
                 'exception_message' => $event->getException()->getMessage(),
-                'exception_trace' => $event->getException()->getTraceAsString()
+                'exception_trace' => $event->getException()->getTraceAsString(),
             ] : null);
 
         $this->logger->error('Job failed', [
@@ -109,7 +107,7 @@ class JobEventLogger
             'uri' => $event->getDownloadJob()->getUri(),
             'exception_message' => $event->getException()->getMessage(),
             'context' => $event->getContext(),
-            'event' => 'job.failed'
+            'event' => 'job.failed',
         ]);
 
         $this->storeDownloadJobEvent($jobEvent);

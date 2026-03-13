@@ -4,14 +4,30 @@ security:
         Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
     # https://symfony.com/doc/current/security.html#loading-the-user-the-user-provider
     providers:
-        users_in_memory: { memory: null }
+        oidc_user_provider:
+            id: App\Security\Core\User\OidcUserProvider
     firewalls:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
+        login:
+            pattern: ^/api/login
+            stateless: true
+
         main:
             lazy: true
-            provider: users_in_memory
+#            jwt: ~
+            access_token:
+                token_handler:
+                    oidc:
+                        claim: '%oidc.claim%'
+                        audience: '%oidc.audience%'
+                        issuers: ['%oidc.issuer%']
+                        algorithms: [ 'ES256', 'RS256' ]
+                        discovery:
+                            base_uri: '%oidc.discovery_base_uri%'
+                            cache:
+                                id: cache.app
 
             # activate different ways to authenticate
             # https://symfony.com/doc/current/security.html#the-firewall
@@ -19,21 +35,43 @@ security:
             # https://symfony.com/doc/current/security/impersonating_user.html
             # switch_user: true
 
+    role_hierarchy:
+        ROLE_ALLOW_CREATE_DOWNLOAD_JOB: ROLE_USER
+        ROLE_ALLOW_GET_DOWNLOAD_JOB:    ROLE_USER
+        ROLE_ALLOW_LIST_DOWNLOAD_JOBS:  ROLE_ALLOW_GET_DOWNLOAD_JOB
+        ROLE_ADMIN:                     [ROLE_ALLOW_CREATE_DOWNLOAD_JOB, ROLE_ALLOW_LIST_DOWNLOAD_JOBS]
+        ROLE_DOWNLOAD-API_ADMIN:        [ROLE_ADMIN]
+        ROLE_SUPER_ADMIN:               [ROLE_DOWNLOAD-API_ADMIN, ROLE_ALLOWED_TO_SWITCH]
+
     # Easy way to control access for large sections of your site
     # Note: Only the *first* access control that matches will be used
     access_control:
+        - { path: ^/$, roles: PUBLIC_ACCESS } # Allows accessing the Swagger UI
+        - { path: ^/.well-known, roles: PUBLIC_ACCESS } # Allows accessing well-known endpoints (e.g., for OIDC discovery)
+        - { path: ^/auth, roles: PUBLIC_ACCESS } # Allows exchanging the authorization code for an access token
+        - { path: ^/docs, roles: PUBLIC_ACCESS } # Allows accessing the Swagger UI docs
+        - { path: ^/contexts, roles: PUBLIC_ACCESS } # Allows accessing the Swagger UI contexts
+        - { path: ^/versions, roles: PUBLIC_ACCESS } # Allows accessing the versions endpoint
+        - { path: ^/, roles: IS_AUTHENTICATED_FULLY }
         # - { path: ^/admin, roles: ROLE_ADMIN }
         # - { path: ^/profile, roles: ROLE_USER }
 
 when@test:
     security:
+        firewalls:
+            main:
+                http_basic:
+                    realm: 'Secured Test Area'
+                lazy: true
+                provider: users_in_memory
+        providers:
+            users_in_memory:
+                memory:
+                    users:
+                        user: { password: 'userpass', roles: 'ROLE_USER' }
+                        admin: { password: 'adminpass', roles: 'ROLE_ADMIN' }
         password_hashers:
-            # By default, password hashers are resource intensive and take time. This is
-            # important to generate secure password hashes. In tests however, secure hashes
-            # are not important, waste resources and increase test times. The following
-            # reduces the work factor to the lowest possible values.
+            # Use plaintext passwords in tests for simplicity with in-memory users
             Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface:
-                algorithm: auto
-                cost: 4 # Lowest possible value for bcrypt
-                time_cost: 3 # Lowest possible value for argon
-                memory_cost: 10 # Lowest possible value for argon
+                algorithm: plaintext
+

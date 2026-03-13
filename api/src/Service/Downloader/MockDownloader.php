@@ -27,6 +27,7 @@ class MockDownloader implements DownloaderInterface
     public function supportsUri(UriInterface $uri): bool
     {
         $host = $uri->getHost();
+
         return in_array($host, $this->getSupportedDomains(), true);
     }
 

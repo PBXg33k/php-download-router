@@ -13,33 +13,29 @@ use App\Service\Downloader\DownloaderInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityNotFoundException;
 use GuzzleHttp\Psr7\Uri;
-use InvalidArgumentException;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
-use Throwable;
 
 #[AsMessageHandler]
 class DownloadJobHandler
 {
     public function __construct(
-        private EntityManagerInterface   $entityManager,
-        private DownloaderFactory        $downloaderFactory,
-        private LoggerInterface          $logger,
-        private EventDispatcherInterface $eventDispatcher
-    )
-    {
+        private EntityManagerInterface $entityManager,
+        private DownloaderFactory $downloaderFactory,
+        private LoggerInterface $logger,
+        private EventDispatcherInterface $eventDispatcher,
+    ) {
     }
 
     public function __invoke(
-        DownloadJob $downloadJob
-    ): void
-    {
+        DownloadJob $downloadJob,
+    ): void {
         try {
             // Load the DownloadJob from the database to ensure we have the latest state
             $downloadJobEntity = $this->entityManager->getRepository(DownloadJob::class)->find($downloadJob->getId());
             if (!$downloadJobEntity) {
-                throw new EntityNotFoundException('DownloadJob not found with ID: ' . $downloadJob->getId());
+                throw new EntityNotFoundException('DownloadJob not found with ID: '.$downloadJob->getId());
             }
 
             // Dispatch job picked up event
@@ -49,11 +45,11 @@ class DownloadJobHandler
             if ($downloadJobEntity->getDownloader()) {
                 $downloader = $this->getDownloaderByDownloaderIdentifier($downloadJobEntity->getDownloader());
                 if (!$downloader) {
-                    throw new InvalidArgumentException('Invalid downloader specified: ' . $downloadJobEntity->getDownloader());
+                    throw new \InvalidArgumentException('Invalid downloader specified: '.$downloadJobEntity->getDownloader());
                 }
                 $this->eventDispatcher->dispatch(new JobUpdateEvent(
                     $downloadJobEntity,
-                    'Using specified downloader: ' . $downloader->getIdentifier(),
+                    'Using specified downloader: '.$downloader->getIdentifier(),
                     ['downloader' => $downloader->getIdentifier()]
                 ));
             } else {
@@ -65,7 +61,7 @@ class DownloadJobHandler
                     break; // Get the first one
                 }
                 if (!$downloader) {
-                    throw new InvalidArgumentException('No downloader found for URI: ' . $downloadJobEntity->getUri());
+                    throw new \InvalidArgumentException('No downloader found for URI: '.$downloadJobEntity->getUri());
                 }
 
                 // Set the downloader identifier to the download job and persist it
@@ -100,7 +96,7 @@ class DownloadJobHandler
             $this->eventDispatcher->dispatch(new JobFailedEvent($downloadJob, $e));
 
             throw $e; // Re-throw to ensure the message is not lost
-        } catch (Throwable $exception) {
+        } catch (\Throwable $exception) {
             if ($downloadJobEntity instanceof DownloadJob) {
                 // Update job state to failed
                 $downloadJobEntity->setState(DownloadStateEnum::FAILED);

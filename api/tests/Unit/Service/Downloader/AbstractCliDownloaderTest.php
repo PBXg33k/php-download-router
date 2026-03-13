@@ -5,7 +5,6 @@ namespace App\Tests\Unit\Service\Downloader;
 use App\Entity\DownloadJob;
 use App\Enum\DownloaderTypeEnum;
 use App\Service\Downloader\AbstractCliDownloader;
-use GuzzleHttp\Psr7\Uri;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Process\Process;
@@ -86,8 +85,8 @@ class AbstractCliDownloaderTest extends TestCase
 
     public function testCreateConfigFileIfNotExistsCreatesDirectory(): void
     {
-        $tempDir = sys_get_temp_dir() . '/test-downloader-' . uniqid();
-        $configPath = $tempDir . '/config/test.conf';
+        $tempDir = sys_get_temp_dir().'/test-downloader-'.uniqid();
+        $configPath = $tempDir.'/config/test.conf';
 
         $downloader = $this->createConcreteDownloader($configPath);
 
@@ -102,7 +101,6 @@ class AbstractCliDownloaderTest extends TestCase
         // Use reflection to call the protected method
         $reflection = new \ReflectionClass($downloader);
         $method = $reflection->getMethod('createConfigFileIfNotExists');
-
 
         $method->invoke($downloader);
 
@@ -130,7 +128,6 @@ class AbstractCliDownloaderTest extends TestCase
         $reflection = new \ReflectionClass($downloader);
         $method = $reflection->getMethod('createConfigFileIfNotExists');
 
-
         $method->invoke($downloader);
 
         $this->assertSame('existing content', file_get_contents($tempFile));
@@ -141,7 +138,7 @@ class AbstractCliDownloaderTest extends TestCase
 
     public function testCreateDownloadDirectoryIfNotExists(): void
     {
-        $tempDir = sys_get_temp_dir() . '/test-downloads-' . uniqid();
+        $tempDir = sys_get_temp_dir().'/test-downloads-'.uniqid();
 
         $downloader = $this->createConcreteDownloader(null, null, $tempDir);
 
@@ -153,7 +150,6 @@ class AbstractCliDownloaderTest extends TestCase
         $reflection = new \ReflectionClass($downloader);
         $method = $reflection->getMethod('createDownloadDirectoryIfNotExists');
 
-
         $method->invoke($downloader);
 
         $this->assertDirectoryExists($tempDir);
@@ -164,7 +160,7 @@ class AbstractCliDownloaderTest extends TestCase
 
     public function testCreateDownloadDirectoryIfNotExistsSkipsIfExists(): void
     {
-        $tempDir = sys_get_temp_dir() . '/existing-downloads-' . uniqid();
+        $tempDir = sys_get_temp_dir().'/existing-downloads-'.uniqid();
         mkdir($tempDir);
 
         $downloader = $this->createConcreteDownloader(null, null, $tempDir);
@@ -175,7 +171,6 @@ class AbstractCliDownloaderTest extends TestCase
         // Use reflection to call the protected method
         $reflection = new \ReflectionClass($downloader);
         $method = $reflection->getMethod('createDownloadDirectoryIfNotExists');
-
 
         $method->invoke($downloader);
 
@@ -193,7 +188,6 @@ class AbstractCliDownloaderTest extends TestCase
         $reflection = new \ReflectionClass($downloader);
         $method = $reflection->getMethod('getPipUpdateCommandArgs');
 
-
         $result = $method->invoke($downloader, 'yt-dlp');
 
         $this->assertIsArray($result);
@@ -208,7 +202,6 @@ class AbstractCliDownloaderTest extends TestCase
         // Use reflection to call the protected method
         $reflection = new \ReflectionClass($downloader);
         $method = $reflection->getMethod('getPipUpdateCommandArgs');
-
 
         $result = $method->invoke($downloader, 'gallery-dl');
 
@@ -231,7 +224,6 @@ class AbstractCliDownloaderTest extends TestCase
         $reflection = new \ReflectionClass($downloader);
         $method = $reflection->getMethod('getVersionFromPip');
 
-
         $result = $method->invoke($downloader, 'yt-dlp');
 
         $this->assertSame($expectedVersions, $result);
@@ -250,7 +242,6 @@ class AbstractCliDownloaderTest extends TestCase
         // Use reflection to call the protected method
         $reflection = new \ReflectionClass($downloader);
         $method = $reflection->getMethod('getVersionFromPip');
-
 
         $result = $method->invoke($downloader, 'gallery-dl');
 
@@ -271,7 +262,6 @@ class AbstractCliDownloaderTest extends TestCase
 
         $reflection = new \ReflectionClass($downloader);
         $method = $reflection->getMethod('getVersionFromPip');
-
 
         $result1 = $method->invoke($downloader, 'yt-dlp');
         $result2 = $method->invoke($downloader, 'gallery-dl');
@@ -295,6 +285,7 @@ class AbstractCliDownloaderTest extends TestCase
                 // We can't fully test the callback since it executes Process,
                 // but we verify the callback is properly structured
                 $this->assertIsCallable($callback);
+
                 return ['installed' => '1.0.0', 'latest' => '1.0.1'];
             });
 
@@ -302,7 +293,6 @@ class AbstractCliDownloaderTest extends TestCase
 
         $reflection = new \ReflectionClass($downloader);
         $method = $reflection->getMethod('getVersionFromPip');
-
 
         $result = $method->invoke($downloader, 'test-package');
 
@@ -312,14 +302,7 @@ class AbstractCliDownloaderTest extends TestCase
 
     private function createConcreteDownloader(?string $configPath = null, ?string $binaryPath = null, ?string $downloadPath = null): AbstractCliDownloader
     {
-        return new class(
-            $this->cache,
-            $this->eventDispatcher,
-            $configPath ?? $this->configPath,
-            $binaryPath ?? $this->binaryPath,
-            $downloadPath ?? $this->downloadPath,
-            $this->logger
-        ) extends AbstractCliDownloader {
+        return new class($this->cache, $this->eventDispatcher, $configPath ?? $this->configPath, $binaryPath ?? $this->binaryPath, $downloadPath ?? $this->downloadPath, $this->logger) extends AbstractCliDownloader {
             public function getIdentifier(): string
             {
                 return 'test-cli-downloader';
@@ -327,7 +310,7 @@ class AbstractCliDownloaderTest extends TestCase
 
             public function supportsUri(\Psr\Http\Message\UriInterface $uri): bool
             {
-                return $uri->getHost() === 'test.com';
+                return 'test.com' === $uri->getHost();
             }
 
             public function getSupportedDomains(): array

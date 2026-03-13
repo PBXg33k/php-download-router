@@ -87,8 +87,11 @@ You should **ALWAYS** run tests in docker to ensure consistency:
 - this ensures the correct PHP version and environment
 
 ```bash
+# Prepare the test environment
+make prep-test
+
 # Run PHPUnit tests
-docker compose exec -T php bin/phpunit
+make test
 # Location: api/phpunit.xml.dist
 ``` 
 

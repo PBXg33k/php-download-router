@@ -14,12 +14,26 @@ It routes download requests to the following backends based on their supported d
 
 More to be added in the future.
 
+## Companion Extensions
+
+I'm working on a companion (browser) extension for this API.
+This extension allows you to interact with the API directly from your browser,
+making it easier to manage the downloads and send links to the API.
+
+It will be released for Firefox and Chrome soon.
+
+At the time of writing this, the extension is still in development and not yet published to the browser stores.
+
+## Authentication
+
+Authentication is currently supported using OAuth2. During development, the API is tested using Authentik as a self hosted authentication server, but it should work with any OAuth2 provider.
+If you're having issues with setting up authentication with your provider, feel free to open an issue and I'll try to help you out.
+
 ## Features
 - Download files from various platforms using a single API
 - Support for multiple backends
   - yt-dlp 
   - gallery-dl
-  - [gallery-dl-server](https://github.com/qx6ghqkz/gallery-dl-server)
   - mock backend for testing
 - Asynchronous processing of download (depending on number of workers)
 - Auto upgrade CLI downloaders
@@ -27,14 +41,10 @@ More to be added in the future.
   - Just create a new class implementing the `App\Service\Downloader\DownloaderInterface` and it's automatically registered
 - Dockerized for easy deployment
 - API documentation with Swagger UI
-- Compatibility tested with the following MeTube browser extensions. [INSTRUCTIONS](https://github.com/PBXg33k/php-download-router/wiki/Browser-Extensions-%E2%80%90-Metube)
-  - [Firefox](https://addons.mozilla.org/en-US/firefox/addon/metube-downloader/) 
-  - [Chrome and Chromium based browsers](https://chromewebstore.google.com/detail/metube-downloader/fbmkmdnlhacefjljljlbhkodfmfkijdh)
-
 
 ### Future Plans (in no particular order)
 - [ ] Add more backends for different platforms
-- [ ] Implement authentication and authorization
+- [x] Implement authentication and authorization (OAuth2)
 - [ ] Add support for scheduling downloads
 - [ ] Add support for monitoring URLS (periodic checks for new content)
 - [ ] Implement retry mechanism for failed downloads

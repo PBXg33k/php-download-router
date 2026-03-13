@@ -4,15 +4,15 @@ namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Post;
 use App\Dto\DownloadJobDTO;
 use App\Dto\JobAcceptedDTO;
 use App\Enum\DownloadStateEnum;
 use App\Model\DownloadJobInterface;
-use App\Model\MetubeDownloadJob;
 use App\Repository\DownloadJobRepository;
 use App\State\DownloadJobQueuedProcessor;
-use App\State\MetubeDownloadJobProcessor;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -28,22 +28,19 @@ use Symfony\Component\Uid\Uuid;
     operations: [
         new Post(
             status: 202,
+            security: "is_granted('ROLE_ALLOW_CREATE_DOWNLOAD_JOB')",
             input: DownloadJobDTO::class,
             output: JobAcceptedDTO::class,
             messenger: 'input',
-            processor: DownloadJobQueuedProcessor::class,
+            processor: DownloadJobQueuedProcessor::class
         ),
-        new Post(
-            uriTemplate: '/add',
-            formats: ['json' => ['application/json']],
-            status: 202,
-            openapi: false,
-            description: "Endpoint for the Metube browser extension to add download jobs.",
-            input: MetubeDownloadJob::class,
-            output: JobAcceptedDTO::class,
-            messenger: 'input',
-            processor: MetubeDownloadJobProcessor::class
-        )
+        new Get(
+            security: "is_granted('ROLE_ALLOW_GET_DOWNLOAD_JOB')"
+        ),
+        new GetCollection(
+            order: ['createdAt' => 'DESC'],
+            security: "is_granted('ROLE_ALLOW_LIST_DOWNLOAD_JOBS')"
+        ),
     ],
     mercure: true
 )]
@@ -90,6 +87,9 @@ class DownloadJob implements DownloadJobInterface
      */
     #[ORM\ManyToMany(targetEntity: DownloadedFile::class, mappedBy: 'downloadJob')]
     private Collection $files;
+
+    #[ORM\ManyToOne(inversedBy: 'downloadJobs')]
+    private ?OidcSubjectIdentifier $owner = null;
 
     public function __construct()
     {
@@ -232,6 +232,18 @@ class DownloadJob implements DownloadJobInterface
         if ($this->files->removeElement($downloadedFile)) {
             $downloadedFile->removeDownloadJob($this);
         }
+
+        return $this;
+    }
+
+    public function getOwner(): ?OidcSubjectIdentifier
+    {
+        return $this->owner;
+    }
+
+    public function setOwner(?OidcSubjectIdentifier $owner): static
+    {
+        $this->owner = $owner;
 
         return $this;
     }

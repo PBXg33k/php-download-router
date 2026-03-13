@@ -13,9 +13,8 @@ use Symfony\Component\Routing\Attribute\Route;
 final class DownloadController extends AbstractController
 {
     public function __construct(
-        private readonly DownloadJobRepository $downloadJobRepository
-    )
-    {
+        private readonly DownloadJobRepository $downloadJobRepository,
+    ) {
     }
 
     #[Route(
@@ -27,16 +26,15 @@ final class DownloadController extends AbstractController
     public function index(
         string $downloadJobUuid,
         string $token,
-        int    $fileId
-    ): JsonResponse|BinaryFileResponse
-    {
+        int $fileId,
+    ): JsonResponse|BinaryFileResponse {
         $downloadJob = $this->downloadJobRepository->findOneByUuidAndToken($downloadJobUuid, $token);
         if (!$downloadJob) {
             throw new NotFoundHttpException('Download job not found or invalid token.');
         }
 
         /** @var DownloadedFile $file */
-        $file = $downloadJob->getFiles()->filter(fn(DownloadedFile $f) => $f->getId() === $fileId)->first();
+        $file = $downloadJob->getFiles()->filter(fn (DownloadedFile $f) => $f->getId() === $fileId)->first();
         if (!$file) {
             throw new NotFoundHttpException('File not found in this download job.');
         }
@@ -51,7 +49,11 @@ final class DownloadController extends AbstractController
         switch ($downloadJob->getDownloader()) {
             case 'yt-dlp-cli':
                 $metadata = $file->getMetadata();
-                $filename = $metadata['title'] . '.' . $metadata['ext'] ?? basename($file->getPath() ?: 'downloaded_file');
+                if (isset($metadata['title'], $metadata['ext']) && $metadata['title'] !== '' && $metadata['ext'] !== '') {
+                    $filename = $metadata['title'].'.'.$metadata['ext'];
+                } else {
+                    $filename = basename($file->getPath() ?: 'downloaded_file');
+                }
                 break;
             case 'gallery-dl-cli':
                 $metadata = $file->getMetadata();

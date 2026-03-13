@@ -25,9 +25,8 @@ class UrlDownloadCommand extends Command
     private ?DownloaderInterface $downloader = null;
 
     public function __construct(
-        private DownloaderFactory $downloaderCollection
-    )
-    {
+        private DownloaderFactory $downloaderCollection,
+    ) {
         parent::__construct();
     }
 
@@ -46,6 +45,7 @@ class UrlDownloadCommand extends Command
                     foreach ($downloaderCollection->getEnabledDownloaders() as $downloader) {
                         $suggestions[] = $downloader->getIdentifier();
                     }
+
                     return $suggestions;
                 }
             );
@@ -62,10 +62,12 @@ class UrlDownloadCommand extends Command
             $this->downloader = $this->downloaderCollection->getDownloaderByIdentifier($selectedDownloader);
             if (!$this->downloader) {
                 $io->error(sprintf('Downloader with identifier "%s" not found!', $selectedDownloader));
+
                 return Command::FAILURE;
             }
             if (!$this->downloader->supportsUri(Utils::uriFor($url))) {
                 $io->error(sprintf('Downloader with identifier "%s" does not support the given URL!', $selectedDownloader));
+
                 return Command::FAILURE;
             }
         } else {
@@ -79,14 +81,14 @@ class UrlDownloadCommand extends Command
             }
         }
 
-
         $io->info(sprintf('Downloading URL: %s', $url));
         if ($this->downloader->download(Utils::uriFor($url))) {
             $io->success('URL sent to download server successfully!');
+
             return Command::SUCCESS;
-        } else {
-            $io->error('Failed to send URL to download server!');
-            return Command::FAILURE;
         }
+        $io->error('Failed to send URL to download server!');
+
+        return Command::FAILURE;
     }
 }

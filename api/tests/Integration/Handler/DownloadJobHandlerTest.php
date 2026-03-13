@@ -185,7 +185,7 @@ class DownloadJobHandlerTest extends TestCase
 
         // Verify state changed to failed and failed event was dispatched
         $this->assertSame(DownloadStateEnum::FAILED, $downloadJob->getState());
-        $failedEvents = array_filter($this->dispatchedEvents, fn($event) => $event instanceof JobFailedEvent);
+        $failedEvents = array_filter($this->dispatchedEvents, fn ($event) => $event instanceof JobFailedEvent);
         $this->assertCount(1, $failedEvents);
     }
 
@@ -257,7 +257,7 @@ class DownloadJobHandlerTest extends TestCase
 
         // Verify job failed and events were dispatched
         $this->assertSame(DownloadStateEnum::FAILED, $downloadJob->getState());
-        $failedEvents = array_filter($this->dispatchedEvents, fn($event) => $event instanceof JobFailedEvent);
+        $failedEvents = array_filter($this->dispatchedEvents, fn ($event) => $event instanceof JobFailedEvent);
         $this->assertCount(1, $failedEvents);
 
         $failedEvent = array_values($failedEvents)[0];
@@ -290,7 +290,7 @@ class DownloadJobHandlerTest extends TestCase
         $this->handler->__invoke($downloadJob);
 
         // Find the JobUpdateEvent
-        $updateEvents = array_filter($this->dispatchedEvents, fn($event) => $event instanceof JobUpdateEvent);
+        $updateEvents = array_filter($this->dispatchedEvents, fn ($event) => $event instanceof JobUpdateEvent);
         $this->assertCount(1, $updateEvents);
 
         $updateEvent = array_values($updateEvents)[0];
@@ -320,7 +320,7 @@ class DownloadJobHandlerTest extends TestCase
         $this->handler->__invoke($downloadJob);
 
         // Find the JobUpdateEvent
-        $updateEvents = array_filter($this->dispatchedEvents, fn($event) => $event instanceof JobUpdateEvent);
+        $updateEvents = array_filter($this->dispatchedEvents, fn ($event) => $event instanceof JobUpdateEvent);
         $this->assertCount(1, $updateEvents);
 
         $updateEvent = array_values($updateEvents)[0];

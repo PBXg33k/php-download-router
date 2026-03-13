@@ -2,9 +2,10 @@
 
 # Adapted from https://github.com/dunglas/symfony-docker
 
-
 # Versions
-FROM dunglas/frankenphp:1-php8.4 AS frankenphp_upstream
+FROM dunglas/frankenphp:1-php8.5 AS frankenphp_upstream
+ARG APP_VERSION=undefined
+ENV APP_VERSION=${APP_VERSION}
 
 
 # The different stages of this Dockerfile are meant to be built into separate images
@@ -36,6 +37,8 @@ RUN chmod +x /etc/cron.hourly/*
 
 # Base FrankenPHP image
 FROM frankenphp_upstream AS frankenphp_base
+ARG APP_VERSION=undefined
+ENV APP_VERSION=${APP_VERSION}
 
 WORKDIR /app
 
@@ -61,7 +64,6 @@ ENV PHP_INI_SCAN_DIR=":$PHP_INI_DIR/app.conf.d"
 RUN set -eux; \
 	install-php-extensions \
 		@composer \
-		amqp \
 		apcu \
 		intl \
 		opcache \
@@ -89,6 +91,8 @@ CMD [ "frankenphp", "run", "--config", "/etc/frankenphp/Caddyfile" ]
 
 # Dev FrankenPHP image
 FROM frankenphp_base AS frankenphp_dev
+ARG APP_VERSION=undefined
+ENV APP_VERSION=${APP_VERSION}
 
 ENV APP_ENV=dev
 ENV XDEBUG_MODE=off
@@ -108,6 +112,8 @@ CMD [ "frankenphp", "run", "--config", "/etc/frankenphp/Caddyfile", "--watch" ]
 
 # Prod FrankenPHP image
 FROM frankenphp_base AS frankenphp_prod
+ARG APP_VERSION=undefined
+ENV APP_VERSION=${APP_VERSION}
 
 ENV APP_ENV=prod
 

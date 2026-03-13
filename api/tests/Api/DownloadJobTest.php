@@ -24,6 +24,7 @@ class DownloadJobTest extends ApiTestCase
             ],
             'headers' => [
                 'Content-Type' => 'application/ld+json',
+                'Authorization' => 'Basic '.base64_encode('admin:adminpass'),
             ],
         ]);
 
@@ -39,6 +40,7 @@ class DownloadJobTest extends ApiTestCase
             ],
             'headers' => [
                 'Content-Type' => 'application/ld+json',
+                'Authorization' => 'Basic '.base64_encode('admin:adminpass'),
             ],
         ]);
 

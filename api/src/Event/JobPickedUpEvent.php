@@ -12,9 +12,8 @@ class JobPickedUpEvent extends Event
 {
     public function __construct(
         private readonly DownloadJob $downloadJob,
-        private ?string              $workerIdentifier = null
-    )
-    {
+        private ?string $workerIdentifier = null,
+    ) {
     }
 
     public function getDownloadJob(): DownloadJob

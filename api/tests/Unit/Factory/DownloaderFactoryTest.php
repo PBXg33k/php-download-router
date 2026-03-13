@@ -58,10 +58,10 @@ class DownloaderFactoryTest extends TestCase
         $downloader2 = $this->createMockDownloader('gallery-dl', ['instagram.com', 'twitter.com']);
 
         $downloader1->method('supportsUri')
-            ->willReturnCallback(fn($uri) => in_array($uri->getHost(), ['youtube.com', 'youtu.be']));
+            ->willReturnCallback(fn ($uri) => in_array($uri->getHost(), ['youtube.com', 'youtu.be']));
 
         $downloader2->method('supportsUri')
-            ->willReturnCallback(fn($uri) => in_array($uri->getHost(), ['instagram.com', 'twitter.com']));
+            ->willReturnCallback(fn ($uri) => in_array($uri->getHost(), ['instagram.com', 'twitter.com']));
 
         $this->factory = new DownloaderFactory([$downloader1, $downloader2], $this->logger);
 
@@ -78,10 +78,10 @@ class DownloaderFactoryTest extends TestCase
         $downloader2 = $this->createMockDownloader('universal2', ['example.com']);
 
         $downloader1->method('supportsUri')
-            ->willReturnCallback(fn($uri) => $uri->getHost() === 'example.com');
+            ->willReturnCallback(fn ($uri) => 'example.com' === $uri->getHost());
 
         $downloader2->method('supportsUri')
-            ->willReturnCallback(fn($uri) => $uri->getHost() === 'example.com');
+            ->willReturnCallback(fn ($uri) => 'example.com' === $uri->getHost());
 
         $this->factory = new DownloaderFactory([$downloader1, $downloader2], $this->logger);
 
