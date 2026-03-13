@@ -12,21 +12,21 @@ use App\Service\Downloader\DownloaderInterface;
 class DownloaderProvider implements ProviderInterface
 {
     public function __construct(
-        private(set) DownloaderFactory $downloaderFactory
-    )
-    {
+        private DownloaderFactory $downloaderFactory,
+    ) {
     }
 
     /**
      * @return iterable<DownloaderInterface>
      */
-    public function provide(Operation $operation, array $uriVariables = [], array $context = []): null|array|object
+    public function provide(Operation $operation, array $uriVariables = [], array $context = []): array|object|null
     {
-        if($operation instanceof CollectionOperationInterface) {
+        if ($operation instanceof CollectionOperationInterface) {
             $downloaders = [];
             foreach ($this->downloaderFactory->getEnabledDownloaders() as $downloader) {
                 $downloaders[] = $this->createDownloaderModelFromDownloaderService($downloader);
             }
+
             return $downloaders;
         }
 
@@ -36,6 +36,7 @@ class DownloaderProvider implements ProviderInterface
                 return $this->createDownloaderModelFromDownloaderService($downloader);
             }
         }
+
         return null;
     }
 

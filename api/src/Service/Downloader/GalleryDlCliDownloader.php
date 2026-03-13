@@ -2,95 +2,35 @@
 
 namespace App\Service\Downloader;
 
-use App\Enum\DownloaderTypeEnum;
-use App\Model\DownloadJobInterface;
+use App\Entity\DownloadedFile;
+use App\Entity\DownloadJob;
+use App\Repository\DownloadedFileRepository;
+use Doctrine\ORM\EntityManagerInterface;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Http\Message\UriInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\Process;
 use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
-class GalleryDlCliDownloader implements DownloaderInterface
+class GalleryDlCliDownloader extends AbstractCliDownloader implements CliDownloaderInterface
 {
     public function __construct(
-        private(set) TagAwareCacheInterface $cache,
+        protected TagAwareCacheInterface $cache,
         #[Autowire(param: 'downloader.gallery_dl_cli.config_path')]
-        private(set) string $configPath,
+        protected string $configPath,
         #[Autowire(param: 'downloader.gallery_dl_cli.binary_path')]
-        private(set) string $binaryPath,
+        protected string $binaryPath,
         #[Autowire(param: 'downloader.gallery_dl_cli.downloads_dir')]
-        private(set) string $downloadPath,
-        private LoggerInterface $logger
-    )
-    {
-    }
-
-    public function download(DownloadJobInterface $downloadJob): true
-    {
-        $this->logger->debug(
-            'Starting download with gallery-dl CLI',
-            [
-                'url' => $downloadJob->getUrl()->__toString(),
-                'configPath' => $this->configPath,
-                'binaryPath' => $this->binaryPath,
-                'downloadPath' => $this->downloadPath,
-            ]
-        );
-        $this->createConfigFileIfNotExists();
-        $this->createDownloadDirectoryIfNotExists();
-
-        // TODO: Implement download() method.
-        $downloadProcess = new Process([
-            $this->binaryPath,
-            '--config', $this->configPath,
-            $downloadJob->getUrl()->__toString()
-        ], $this->downloadPath);
-
-        $downloadProcess->mustRun(function(string $type, string $buffer)  {
-            if (Process::ERR === $type) {
-                $this->logger->error('gallery-dl error output: ' . $buffer);
-            } else {
-                $this->logger->info('gallery-dl output: ' . $buffer);
-            }
-        });
-        if (!$downloadProcess->isSuccessful()) {
-            throw new \RuntimeException($downloadProcess->getErrorOutput());
-        } else {
-            return true;
-        }
-    }
-
-    public function getDownloaderType(): DownloaderTypeEnum
-    {
-        return DownloaderTypeEnum::CLI_DOWNLOADER;
-    }
-
-    public function getSupportedDomains(): array
-    {
-        // Get the application version to set the cache key.
-        $versionProcess = new Process([$this->binaryPath, '--version']);
-        $versionProcess->mustRun();
-        if (!$versionProcess->isSuccessful()) {
-            throw new \RuntimeException($versionProcess->getErrorOutput());
-        }
-        $version = trim($versionProcess->getOutput());
-
-        return $this->cache->get('gallery_dl_cli_supported_domains_' . $version, function (ItemInterface $item) {
-            $item->tag([
-                'downloader_supported_domains',
-                'gallery_dl_cli_downloader',
-            ]);
-            // Cache for 24 hours
-            $item->expiresAfter(86400);
-            return $this->fetchSupportedDomains();
-        });
-    }
-
-    public function supportsUri(UriInterface $uri): bool
-    {
-        $supportedDomains = $this->getSupportedDomains();
-        return in_array($uri->getHost(), $supportedDomains, true);
+        protected string $downloadPath,
+        protected LoggerInterface $logger,
+        protected EventDispatcherInterface $eventDispatcher,
+        protected DownloadedFileRepository $downloadedFileRepository,
+        protected EntityManagerInterface $entityManager,
+    ) {
+        parent::__construct($cache, $eventDispatcher, $configPath, $binaryPath, $downloadPath, $logger);
     }
 
     public function getIdentifier(): string
@@ -98,47 +38,35 @@ class GalleryDlCliDownloader implements DownloaderInterface
         return 'gallery-dl-cli';
     }
 
-    private function createConfigFileIfNotExists(): void
+    public function supportsUri(UriInterface $uri): bool
     {
-        if (!file_exists($this->configPath)) {
-            // Run the command to create a default config file.
-            // gallery-dl --config-create
-            // Since gallery-dl only writes the file to /etc/gallery-dl.conf by default,
-            // we need to move it to the desired location.
-
-            $process = new Process([$this->binaryPath, '--config-create']);
+        $process = new Process([
+            $this->binaryPath,
+            '--simulate',
+            (string) $uri,
+        ]);
+        try {
             $process->mustRun();
-            if (!$process->isSuccessful()) {
-                throw new \RuntimeException($process->getErrorOutput());
-            }
-            // Get the output file path from the command output.
-            // Example output: "[config][info] Created a basic configuration file at '/etc/gallery-dl.conf'"
-            $output = $process->getErrorOutput();
-            preg_match("/'(.+?)'/", $output, $matches);
-            if (isset($matches[1]) && file_exists($matches[1])) {
-                // Make sure the target directory exists
-                $targetDir = dirname($this->configPath);
-                if (!is_dir($targetDir)) {
-                    mkdir($targetDir, 0755, true);
-                }
 
-                rename($matches[1], $this->configPath);
-            } else {
-                $this->logger->error('Failed to find the created gallery-dl config file.',[
-                    'error_output' => $process->getErrorOutput(),
-                    'output' => $output,
-                    'matches' => $matches,
-                ]);
-                throw new \RuntimeException('Failed to create gallery-dl config file.');
-            }
+            return $process->isSuccessful();
+        } catch (ProcessFailedException $e) {
+            return false;
         }
     }
 
-    private function createDownloadDirectoryIfNotExists(): void
+    public function getSupportedDomains(): array
     {
-        if (!is_dir($this->downloadPath)) {
-            mkdir($this->downloadPath, 0755, true);
-        }
+        $version = $this->getCurrentVersion();
+
+        return $this->cache->get('gallery_dl_cli_supported_domains_'.$version, function (ItemInterface $item) {
+            $item->tag([
+                'downloader_supported_domains',
+                'gallery_dl_cli_downloader',
+            ]);
+            $item->expiresAfter(86400);
+
+            return $this->fetchSupportedDomains();
+        });
     }
 
     private function fetchSupportedDomains(): array
@@ -149,14 +77,6 @@ class GalleryDlCliDownloader implements DownloaderInterface
             throw new \RuntimeException($process->getErrorOutput());
         }
         $output = $process->getOutput();
-        /**
-         * Example output:
-         * {extractorName}
-         * {extractorDescription}
-         * Category: {category} - Subcategory: {subcategory}
-         * Example :  {exampleUrl}
-         */
-
         $lines = explode("\n", $output);
         $domains = [];
         foreach ($lines as $line) {
@@ -168,9 +88,93 @@ class GalleryDlCliDownloader implements DownloaderInterface
                 }
             }
         }
-
         $domains = array_unique($domains);
         sort($domains);
+
         return $domains;
+    }
+
+    public function addFilesToDownloadJobFromCommandOutput(DownloadJob $downloadJob, string $commandOutput): void
+    {
+        // Convert \n to actual new lines
+        $lines = explode("\n", $commandOutput);
+
+        // Example output:
+        // ./gallery-dl/kemono/patreon/123/123_filename.pdf
+        // ./gallery-dl/kemono/patreon/123/123_filename.zip
+
+        foreach ($lines as $line) {
+            $line = trim($line);
+            if (empty($line)) {
+                continue;
+            }
+            // Remove leading ./ if present
+            if (str_starts_with($line, './')) {
+                $line = substr($line, 2);
+            }
+            // Remove leading "# ./" if present (some versions of gallery-dl do this)
+            if (str_starts_with($line, '# ./')) {
+                $line = substr($line, 4);
+            }
+            $filePath = $this->downloadPath.'/'.ltrim($line, '/');
+            if (file_exists($filePath) && is_file($filePath)) {
+                $downloadedFile = $this->downloadedFileRepository->findOneBy(['path' => $filePath]);
+                if (!$downloadedFile) {
+                    $downloadedFile = new DownloadedFile();
+                    $downloadedFile->setPath($filePath);
+                    $downloadedFile->setVisible(true);
+                    // TODO: Create a foolproof way to extract metadata if available
+                    // Corrent .metadata.json filename generation is not foolproof right now
+                    $downloadedFile->setMetadata([]);
+                    $this->entityManager->persist($downloadedFile);
+                }
+                $downloadedFile->addDownloadJob($downloadJob);
+                $this->entityManager->persist($downloadJob);
+                $this->entityManager->flush();
+                $this->logger->info('Added file to download job: '.$filePath);
+            } else {
+                $this->logger->warning('File listed in command output does not exist: '.$filePath);
+            }
+        }
+    }
+
+    protected function getConfigFileContents(): string
+    {
+        // If you want to generate a default config, you can run the binary with --config-create and parse the output.
+        // For simplicity, return an empty config or a default template.
+        return '{}';
+    }
+
+    public function getCurrentVersion(): string
+    {
+        $versions = $this->getVersionFromPip('gallery-dl');
+        if (null === $versions) {
+            throw new \RuntimeException('Unable to determine installed gallery-dl version');
+        }
+
+        return $versions['installed'];
+    }
+
+    public function getLatestVersion(): string
+    {
+        $versions = $this->getVersionFromPip('gallery-dl');
+        if (null === $versions) {
+            throw new \RuntimeException('Unable to determine latest gallery-dl version');
+        }
+
+        return $versions['latest'];
+    }
+
+    public function getUpdateCommandArgs(): array
+    {
+        return $this->getPipUpdateCommandArgs('gallery-dl');
+    }
+
+    public function getVersionCommandArgs(): array
+    {
+        return [
+            'gallery-dl',
+            '--version',
+        ];
     }
 }

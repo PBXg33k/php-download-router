@@ -24,14 +24,25 @@ class MockDownloader implements DownloaderInterface
         return DownloaderTypeEnum::CLI_DOWNLOADER;
     }
 
+    public function supportsUri(UriInterface $uri): bool
+    {
+        $host = $uri->getHost();
+
+        return in_array($host, $this->getSupportedDomains(), true);
+    }
+
     public function getSupportedDomains(): array
     {
         return ['example.com', 'test.com'];
     }
 
-    public function supportsUri(UriInterface $uri): bool
+    public function getCurrentVersion(): string
     {
-        $host = $uri->getHost();
-        return in_array($host, $this->getSupportedDomains(), true);
+        return $this->getLatestVersion();
+    }
+
+    public function getLatestVersion(): string
+    {
+        return '1.0.0-mock';
     }
 }

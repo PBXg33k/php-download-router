@@ -20,14 +20,13 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 class UrlDownloadCommand extends Command
 {
     /**
-     * @var \App\Service\Downloader\DownloaderInterface|mixed|null
+     * @var DownloaderInterface|mixed|null
      */
     private ?DownloaderInterface $downloader = null;
 
     public function __construct(
-        private(set) DownloaderFactory $downloaderCollection
-    )
-    {
+        private DownloaderFactory $downloaderCollection,
+    ) {
         parent::__construct();
     }
 
@@ -41,15 +40,15 @@ class UrlDownloadCommand extends Command
                 name: 'downloader',
                 mode: InputArgument::OPTIONAL,
                 description: 'Downloader to use (if multiple are available for the URL)',
-                suggestedValues: function(CompletionInput $input) use ($downloaderCollection) {
+                suggestedValues: function (CompletionInput $input) use ($downloaderCollection) {
                     $suggestions = [];
                     foreach ($downloaderCollection->getEnabledDownloaders() as $downloader) {
                         $suggestions[] = $downloader->getIdentifier();
                     }
+
                     return $suggestions;
                 }
-            )
-        ;
+            );
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -59,14 +58,16 @@ class UrlDownloadCommand extends Command
         $url = $input->getArgument('url');
 
         $selectedDownloader = $input->getOption('downloader');
-        if($selectedDownloader) {
+        if ($selectedDownloader) {
             $this->downloader = $this->downloaderCollection->getDownloaderByIdentifier($selectedDownloader);
-            if(!$this->downloader) {
+            if (!$this->downloader) {
                 $io->error(sprintf('Downloader with identifier "%s" not found!', $selectedDownloader));
+
                 return Command::FAILURE;
             }
-            if(!$this->downloader->supportsUri(Utils::uriFor($url))) {
+            if (!$this->downloader->supportsUri(Utils::uriFor($url))) {
                 $io->error(sprintf('Downloader with identifier "%s" does not support the given URL!', $selectedDownloader));
+
                 return Command::FAILURE;
             }
         } else {
@@ -74,20 +75,20 @@ class UrlDownloadCommand extends Command
             $downloaders = $this->downloaderCollection->getDownloadersByUri(Utils::uriFor($url));
 
             // Just take the first one for now, later we can add a choice if multiple are found
-            foreach($downloaders as $downloader) {
+            foreach ($downloaders as $downloader) {
                 $this->downloader = $downloader;
                 break;
             }
         }
 
-
         $io->info(sprintf('Downloading URL: %s', $url));
-        if($this->downloader->download(Utils::uriFor($url))) {
+        if ($this->downloader->download(Utils::uriFor($url))) {
             $io->success('URL sent to download server successfully!');
+
             return Command::SUCCESS;
-        } else {
-            $io->error('Failed to send URL to download server!');
-            return Command::FAILURE;
         }
+        $io->error('Failed to send URL to download server!');
+
+        return Command::FAILURE;
     }
 }

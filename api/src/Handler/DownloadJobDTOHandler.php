@@ -9,9 +9,8 @@ use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 class DownloadJobDTOHandler
 {
     public function __invoke(
-        DownloadJobDTO $downloadJob
-    )
-    {
+        DownloadJobDTO $downloadJob,
+    ) {
         dd($downloadJob);
     }
 }

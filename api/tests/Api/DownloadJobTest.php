@@ -6,6 +6,11 @@ use ApiPlatform\Symfony\Bundle\Test\ApiTestCase;
 
 class DownloadJobTest extends ApiTestCase
 {
+    protected function setUp(): void
+    {
+        self::$alwaysBootKernel = true;
+    }
+
     public function testCreateDownloadJobWithFullPayload(): void
     {
         static::createClient()->request('POST', '/download_jobs', [
@@ -19,6 +24,7 @@ class DownloadJobTest extends ApiTestCase
             ],
             'headers' => [
                 'Content-Type' => 'application/ld+json',
+                'Authorization' => 'Basic '.base64_encode('admin:adminpass'),
             ],
         ]);
 
@@ -34,6 +40,7 @@ class DownloadJobTest extends ApiTestCase
             ],
             'headers' => [
                 'Content-Type' => 'application/ld+json',
+                'Authorization' => 'Basic '.base64_encode('admin:adminpass'),
             ],
         ]);
 

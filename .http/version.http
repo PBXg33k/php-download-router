@@ -1,0 +1,7 @@
+### Get all versions
+GET {{ client.host }}/versions
+Accept: application/ld+json
+
+### Get a specific version by ID
+GET {{ client.host }}/versions/gallery-dl-cli
+Accept: application/ld+json

@@ -1,0 +1,102 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Authentication{% endblock %}
+
+{% block body %}
+<style>
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        margin: 0;
+        background-color: #f5f5f5;
+    }
+    .auth-container {
+        background: white;
+        padding: 2rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        max-width: 500px;
+        width: 90%;
+        text-align: center;
+    }
+    .success { color: #28a745; }
+    .error { color: #dc3545; }
+    .status-icon { font-size: 3rem; margin-bottom: 1rem; }
+    .message { color: #666; margin-top: 0.5rem; }
+    .error-detail { background: #f8f9fa; padding: 1rem; border-radius: 4px; margin-top: 1rem; font-size: 0.9rem; color: #333; word-break: break-word; }
+</style>
+
+<div class="auth-container">
+{% if success %}
+    <div class="status-icon">✅</div>
+    <h1 class="success">Authentication Successful</h1>
+    <p class="message">You have been authenticated. You can close this window and return to the extension.</p>
+
+    {# Token data is embedded in a hidden element for the browser extension to read #}
+    <div id="auth-result" data-success="true" style="display:none;"
+         data-access-token="{{ access_token }}"
+         {% if refresh_token %}data-refresh-token="{{ refresh_token }}"{% endif %}
+         {% if expires_in %}data-expires-in="{{ expires_in }}"{% endif %}
+         data-token-type="{{ token_type }}">
+    </div>
+{% else %}
+    <div class="status-icon">❌</div>
+    <h1 class="error">Authentication Failed</h1>
+    <p class="message">An error occurred during authentication.</p>
+    <div class="error-detail">
+        <strong>Error:</strong> {{ error }}<br>
+        <strong>Details:</strong> {{ error_description }}
+    </div>
+
+    <div id="auth-result" data-success="false" style="display:none;"
+         data-error="{{ error }}"
+         data-error-description="{{ error_description }}">
+    </div>
+{% endif %}
+</div>
+
+<script>
+    // Notify the browser extension of the authentication result via postMessage.
+    // The extension should listen for this message on the window that opened this page.
+    (function() {
+        var resultEl = document.getElementById('auth-result');
+        if (!resultEl) return;
+
+        var message = {
+            type: 'php-download-router:auth-result',
+            success: resultEl.dataset.success === 'true'
+        };
+
+        if (message.success) {
+            message.access_token = resultEl.dataset.accessToken || null;
+            message.refresh_token = resultEl.dataset.refreshToken || null;
+            message.expires_in = resultEl.dataset.expiresIn ? parseInt(resultEl.dataset.expiresIn, 10) : null;
+            message.token_type = resultEl.dataset.tokenType || 'Bearer';
+        } else {
+            message.error = resultEl.dataset.error || 'unknown_error';
+            message.error_description = resultEl.dataset.errorDescription || '';
+        }
+
+        // Try to send to opener (popup flow) or parent (iframe flow)
+        if (window.opener) {
+            window.opener.postMessage(message, '*');
+        }
+        if (window.parent && window.parent !== window) {
+            window.parent.postMessage(message, '*');
+        }
+
+        // Also dispatch a custom event on the document for same-page listeners
+        document.dispatchEvent(new CustomEvent('auth-result', { detail: message }));
+
+
+        // Close the window after 500ms since we've send the message back and don't need this page anymore.
+        setTimeout(function() {
+            window.close();
+        }, 500);
+    })();
+</script>
+{% endblock %}
+

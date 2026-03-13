@@ -14,11 +14,11 @@ use Doctrine\ORM\Mapping as ORM;
 #[ApiResource(
     operations: [
         new Get(),
-        new GetCollection()
+        new GetCollection(),
     ],
     mercure: true,
     order: [
-        'name' => 'ASC'
+        'name' => 'ASC',
     ]
 )]
 final class SupportedSite

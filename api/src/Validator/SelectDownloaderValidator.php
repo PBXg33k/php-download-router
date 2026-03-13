@@ -9,9 +9,8 @@ use Symfony\Component\Validator\ConstraintValidator;
 final class SelectDownloaderValidator extends ConstraintValidator
 {
     public function __construct(
-        private(set) DownloaderFactory $downloaderFactory
-    )
-    {
+        private readonly DownloaderFactory $downloaderFactory,
+    ) {
     }
 
     public function validate(mixed $value, Constraint $constraint): void
@@ -23,13 +22,11 @@ final class SelectDownloaderValidator extends ConstraintValidator
         }
 
         // Make sure the value is a valid downloader.
-        if($this->downloaderFactory->isValidDownloader($value)) {
+        if ($this->downloaderFactory->isValidDownloader($value)) {
             return;
-        } else {
-            $this->context->buildViolation($constraint->message)
-                ->setParameter('{{ value }}', $value)
-                ->addViolation()
-            ;
         }
+        $this->context->buildViolation($constraint->message)
+            ->setParameter('{{ value }}', $value)
+            ->addViolation();
     }
 }
